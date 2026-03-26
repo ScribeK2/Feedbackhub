@@ -2,7 +2,7 @@ Rails.application.routes.draw do
   root "hub#index"
   get "hub", to: "hub#index"
 
-  resources :feedback, only: [:new, :create, :show] do
+  resources :feedback, only: [ :new, :create, :show ] do
     collection do
       get :form
     end

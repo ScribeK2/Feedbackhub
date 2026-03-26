@@ -25,6 +25,6 @@ class Components::Base < ApplicationComponent
 
   # Combine CSS classes from multiple sources
   def css_classes(*class_arrays)
-    [*class_arrays, (@attributes || {})[:class]].compact.flatten.join(" ")
+    [ *class_arrays, (@attributes || {})[:class] ].compact.flatten.join(" ")
   end
 end

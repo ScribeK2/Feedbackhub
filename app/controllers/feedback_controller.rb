@@ -13,7 +13,7 @@ class FeedbackController < ApplicationController
     @template = FeedbackTemplate.find(params[:feedback_template_id])
     @submission = FeedbackSubmission.new(
       feedback_template: @template,
-      data: submission_data
+      data: submission_data(@template)
     )
 
     if params.dig(:feedback_submission, :feedback_details).present?
@@ -60,7 +60,12 @@ class FeedbackController < ApplicationController
 
   private
 
-  def submission_data
-    params.fetch(:data, {}).permit!.to_h
+  def submission_data(template)
+    allowed_keys = template.field_schema.flat_map do |field|
+      keys = [ field["name"] ]
+      keys << "#{field['name']}_other" if field["has_other"]
+      keys
+    end
+    params.fetch(:data, {}).permit(*allowed_keys).to_h
   end
 end

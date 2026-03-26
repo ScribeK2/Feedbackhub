@@ -6,13 +6,13 @@ class FeedbackTemplateTest < ActiveSupport::TestCase
   test "valid template saves successfully" do
     template = FeedbackTemplate.new(
       name: "New Template",
-      field_schema: [{ "name" => "field", "label" => "Field", "type" => "string", "required" => true }]
+      field_schema: [ { "name" => "field", "label" => "Field", "type" => "string", "required" => true } ]
     )
     assert template.save
   end
 
   test "requires name" do
-    template = FeedbackTemplate.new(field_schema: [{ "name" => "field" }])
+    template = FeedbackTemplate.new(field_schema: [ { "name" => "field" } ])
     assert_not template.valid?
     assert_includes template.errors[:name], "can't be blank"
   end

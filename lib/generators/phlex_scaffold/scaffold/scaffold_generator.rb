@@ -57,7 +57,7 @@ module PhlexScaffold
       end
 
       def display_attributes
-        return [{ name: "name", type: "string" }] if attributes_list.empty?
+        return [ { name: "name", type: "string" } ] if attributes_list.empty?
 
         # Filter out timestamps and id
         attributes_list.reject { |attr| %w[id created_at updated_at].include?(attr[:name]) }
