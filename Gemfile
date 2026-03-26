@@ -20,7 +20,7 @@ gem "solid_cache"
 gem "solid_cable"
 
 # Rich text
-gem "lexxy", "~> 0.1.26.beta"
+gem "lexxy", "~> 0.9.0.beta"
 gem "image_processing", "~> 1.2"
 
 # Code highlighting
