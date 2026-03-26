@@ -1,0 +1,35 @@
+# frozen_string_literal: true
+
+module Views
+<% if namespaced? -%>
+  module <%= namespace.classify %>
+<% end -%>
+  module <%= controller_class_name.pluralize %>
+    class Edit < Views::Base
+      include Phlex::Rails::Helpers::LinkTo
+      include Phlex::Rails::Helpers::ButtonTo
+
+      def initialize(<%= param_name %>:)
+        @<%= param_name %> = <%= param_name %>
+      end
+
+      def view_template
+        h1(class: "text-2xl font-bold mb-6") { "Editing <%= model_name.downcase %>" }
+
+        render <%= namespaced? ? "Views::#{namespace.classify}::#{controller_class_name.pluralize}::" : "Views::#{controller_class_name.pluralize}::" %>Form.new(<%= param_name %>: <%= instance_name %>)
+
+        div(class: "mt-6 flex gap-2") do
+          link_to("Show", <%= instance_name %>, class: "btn btn-secondary")
+          link_to("Back", <%= plural_table_name %>_path, class: "btn btn-ghost")
+        end
+      end
+
+      private
+
+      attr_reader :<%= param_name %>
+    end
+  end
+<% if namespaced? -%>
+end
+<% end -%>
+end

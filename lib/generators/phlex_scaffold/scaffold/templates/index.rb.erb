@@ -1,0 +1,71 @@
+# frozen_string_literal: true
+
+module Views
+<% if namespaced? -%>
+  module <%= namespace.classify %>
+<% end -%>
+  module <%= controller_class_name.pluralize %>
+    class Index < Views::Base
+      include Phlex::Rails::Helpers::LinkTo
+      include Phlex::Rails::Helpers::ButtonTo
+      include Phlex::Rails::Helpers::Notice
+
+      def initialize(<%= plural_param_name %>:)
+        @<%= plural_param_name %> = <%= plural_param_name %>
+      end
+
+      def view_template
+        if notice
+          render Alert.new(message: notice, variant: :success)
+        end
+
+        div(class: "mb-6 flex items-center justify-between") do
+          h1(class: "text-2xl font-bold") { "<%= model_name.pluralize %>" }
+
+          render Button.new(variant: :primary) do
+            link_to("New <%= model_name.downcase %>", new_<%= singular_table_name %>_path)
+          end
+        end
+
+        render Table.new(variant: :zebra) do
+          thead do
+            tr do
+<% display_attributes.each do |attribute| -%>
+              th { "<%= attribute[:name].humanize %>" }
+<% end -%>
+              th(class: "table-actions") { "Actions" }
+            end
+          end
+
+          tbody do
+            <%= plural_instance_name %>.each do |<%= singular_table_name %>|
+              tr do
+<% display_attributes.each do |attribute| -%>
+                td { <%= singular_table_name %>.<%= attribute[:name] %> }
+<% end -%>
+                td(class: "table-actions") do
+                  render Button.new(variant: :ghost, size: :sm) do
+                    link_to("Show", <%= singular_table_name %>)
+                  end
+                  render Button.new(variant: :ghost, size: :sm) do
+                    link_to("Edit", edit_<%= singular_table_name %>_path(<%= singular_table_name %>))
+                  end
+                  render Button.new(variant: :error, size: :sm) do
+                    button_to("Delete", <%= singular_table_name %>, method: :delete, data: { confirm: "Are you sure?" })
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+
+      private
+
+      attr_reader :<%= plural_param_name %>
+    end
+  end
+<% if namespaced? -%>
+  end
+<% end -%>
+end

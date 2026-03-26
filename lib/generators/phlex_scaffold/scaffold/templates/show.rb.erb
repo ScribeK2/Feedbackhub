@@ -1,0 +1,53 @@
+# frozen_string_literal: true
+
+module Views
+<% if namespaced? -%>
+  module <%= namespace.classify %>
+<% end -%>
+  module <%= controller_class_name.pluralize %>
+    class Show < Views::Base
+      include Phlex::Rails::Helpers::LinkTo
+      include Phlex::Rails::Helpers::ButtonTo
+      include Phlex::Rails::Helpers::Notice
+
+      def initialize(<%= param_name %>:)
+        @<%= param_name %> = <%= param_name %>
+      end
+
+      def view_template
+        if notice
+          render Alert.new(message: notice, variant: :success)
+        end
+
+        div(class: "card bg-base-100 shadow") do
+          div(class: "card-body") do
+            h1(class: "card-title") { "<%= model_name %> Details" }
+
+            div(class: "space-y-4") do
+<% display_attributes.each do |attribute| -%>
+              div(class: "form-control") do
+                label(class: "label") do
+                  span(class: "label-text font-medium") { "<%= attribute[:name].humanize %>" }
+                end
+                div(class: "text-base-content") { <%= instance_name %>.<%= attribute[:name] %> }
+              end
+<% end -%>
+            end
+          end
+        end
+
+        div(class: "mt-6 flex gap-2") do
+          link_to("Edit", edit_<%= singular_table_name %>_path(<%= instance_name %>), class: "btn btn-primary")
+          link_to("Back", <%= plural_table_name %>_path, class: "btn btn-ghost")
+        end
+      end
+
+      private
+
+      attr_reader :<%= param_name %>
+    end
+  end
+<% if namespaced? -%>
+end
+<% end -%>
+end

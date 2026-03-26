@@ -1,0 +1,102 @@
+# frozen_string_literal: true
+
+module Views
+<% if namespaced? -%>
+  module <%= namespace.classify %>
+<% end -%>
+  module <%= controller_class_name.pluralize %>
+    class Form < Views::Base
+      include Phlex::Rails::Helpers::FormWith
+
+      def initialize(<%= param_name %>:)
+        @<%= param_name %> = <%= param_name %>
+      end
+
+      def view_template
+        form_with(model: <%= instance_name %>, class: "space-y-6") do |form|
+          # Display errors if any
+          if <%= instance_name %>.errors.any?
+            div(class: "alert alert-error") do
+              span do
+                plain "#{<%= instance_name %>.errors.count} error#{'s' if <%= instance_name %>.errors.count != 1} prohibited this <%= model_name.downcase %> from being saved: "
+                plain <%= instance_name %>.errors.full_messages.join(", ")
+              end
+            end
+          end
+
+<% form_attributes.each do |attribute| -%>
+<% case attribute[:type] -%>
+<% when 'text' -%>
+          div(class: "form-control w-full") do
+            label(class: "label", for: "<%= singular_table_name %>_<%= attribute[:name] %>") do
+              span(class: "label-text") { "<%= attribute[:name].humanize %>" }
+            end
+            plain form.text_area :<%= attribute[:name] %>, class: "textarea textarea-bordered w-full", rows: 4
+          end
+
+<% when 'boolean' -%>
+          div(class: "form-control") do
+            label(class: "label cursor-pointer justify-start gap-2") do
+              plain form.check_box :<%= attribute[:name] %>, class: "checkbox"
+              span(class: "label-text") { "<%= attribute[:name].humanize %>" }
+            end
+          end
+
+<% when 'integer', 'decimal', 'float' -%>
+          div(class: "form-control w-full") do
+            label(class: "label", for: "<%= singular_table_name %>_<%= attribute[:name] %>") do
+              span(class: "label-text") { "<%= attribute[:name].humanize %>" }
+            end
+            plain form.number_field :<%= attribute[:name] %>, class: "input input-bordered w-full"
+          end
+
+<% when 'date' -%>
+          div(class: "form-control w-full") do
+            label(class: "label", for: "<%= singular_table_name %>_<%= attribute[:name] %>") do
+              span(class: "label-text") { "<%= attribute[:name].humanize %>" }
+            end
+            plain form.date_field :<%= attribute[:name] %>, class: "input input-bordered w-full"
+          end
+
+<% when 'datetime' -%>
+          div(class: "form-control w-full") do
+            label(class: "label", for: "<%= singular_table_name %>_<%= attribute[:name] %>") do
+              span(class: "label-text") { "<%= attribute[:name].humanize %>" }
+            end
+            plain form.datetime_local_field :<%= attribute[:name] %>, class: "input input-bordered w-full"
+          end
+
+<% when 'email' -%>
+          div(class: "form-control w-full") do
+            label(class: "label", for: "<%= singular_table_name %>_<%= attribute[:name] %>") do
+              span(class: "label-text") { "<%= attribute[:name].humanize %>" }
+            end
+            plain form.email_field :<%= attribute[:name] %>, class: "input input-bordered w-full"
+          end
+
+<% else -%>
+          div(class: "form-control w-full") do
+            label(class: "label", for: "<%= singular_table_name %>_<%= attribute[:name] %>") do
+              span(class: "label-text") { "<%= attribute[:name].humanize %>" }
+            end
+            plain form.text_field :<%= attribute[:name] %>, class: "input input-bordered w-full"
+          end
+
+<% end -%>
+<% end -%>
+          # Submit button
+          div(class: "flex justify-end") do
+            plain form.submit(<%= instance_name %>.persisted? ? "Update <%= model_name %>" : "Create <%= model_name %>", class: "btn btn-primary")
+          end
+        end
+      end
+
+      private
+
+      attr_reader :<%= param_name %>
+    end
+  end
+<% if namespaced? -%>
+end
+<% end -%>
+end
