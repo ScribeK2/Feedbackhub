@@ -13,7 +13,7 @@ module Feedback
     end
 
     def view_template
-      Card :base_100, class: "shadow-xl max-w-2xl mx-auto" do |card|
+      Card :base_100, class: "shadow-xl max-w-4xl mx-auto" do |card|
         card.body do
           card.title class: "text-2xl mb-6" do
             plain "Submit Feedback"
@@ -143,7 +143,7 @@ module Feedback
         raw view_context.rich_text_area_tag(
           "feedback_submission[#{field[:name]}]",
           @submission.send(field[:name]),
-          class: "trix-content"
+          class: "lexxy-content"
         )
       end
     end
