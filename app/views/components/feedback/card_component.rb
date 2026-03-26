@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Feedback
   class CardComponent < ApplicationComponent
     def initialize(submission:)
@@ -5,12 +7,11 @@ module Feedback
     end
 
     def view_template
-      div(
-        class: "card bg-base-100/80 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer",
+      Card as: :div,
+        class: "bg-base-100/80 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer",
         style: "view-transition-name: card-#{@submission.id}",
-        data: { action: "click->modal#open", modal_id_param: "submission-#{@submission.id}" }
-      ) do
-        div(class: "card-body p-4") do
+        data: { action: "click->modal#open", modal_id_param: "submission-#{@submission.id}" } do |card|
+        card.body class: "p-4" do
           render_header
           render_preview
           render_footer
@@ -27,7 +28,7 @@ module Feedback
         h3(class: "card-title text-sm font-semibold") do
           plain @submission.feedback_template.name
         end
-        span(class: "badge badge-sm #{priority_badge}") do
+        Badge priority_modifier, :sm do
           plain @submission.data["priority"] || "—"
         end
       end
@@ -44,7 +45,7 @@ module Feedback
     def render_footer
       div(class: "flex justify-between items-center text-xs text-base-content/50") do
         span { "Ticket: #{@submission.data['ticket_number'] || '—'}" }
-        span { helpers.time_ago_in_words(@submission.created_at) + " ago" }
+        span { time_ago_in_words(@submission.created_at) + " ago" }
       end
     end
 
@@ -65,16 +66,12 @@ module Feedback
       end
     end
 
-    def priority_badge
+    def priority_modifier
       case @submission.data["priority"]
-      when "High"
-        "badge-error"
-      when "Medium"
-        "badge-warning"
-      when "Low"
-        "badge-success"
-      else
-        "badge-ghost"
+      when "High" then :error
+      when "Medium" then :warning
+      when "Low" then :success
+      else :ghost
       end
     end
   end

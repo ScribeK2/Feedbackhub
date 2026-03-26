@@ -9,7 +9,11 @@ feedbackhub/
 │   │   └── stylesheets/        # CSS files
 │   ├── channels/               # Action Cable channels
 │   ├── controllers/            # Rails controllers
-│   │   └── application_controller.rb
+│   │   ├── application_controller.rb
+│   │   ├── hub_controller.rb
+│   │   ├── feedback_controller.rb
+│   │   └── admin/
+│   │       └── templates_controller.rb
 │   ├── helpers/                # View helpers
 │   ├── javascript/
 │   │   ├── controllers/        # Stimulus controllers
@@ -17,10 +21,28 @@ feedbackhub/
 │   ├── jobs/                   # Background jobs (Solid Queue)
 │   ├── mailers/                # Email templates
 │   ├── models/                 # ActiveRecord models
+│   │   ├── feedback_template.rb
+│   │   └── feedback_submission.rb
 │   └── views/                  # Phlex views
-│       ├── components/         # Reusable UI components
-│       ├── layouts/            # Layout views
-│       └── [resource]/         # Resource-specific views
+│       ├── base.rb             # Base view class (Views::Base)
+│       └── components/         # Phlex components (PhlexyUI)
+│           ├── application_component.rb
+│           ├── base.rb
+│           ├── admin/
+│           │   ├── template_form_component.rb
+│           │   └── template_list_component.rb
+│           ├── feedback/
+│           │   ├── card_component.rb
+│           │   ├── form_component.rb
+│           │   └── success_component.rb
+│           ├── hub/
+│           │   ├── index_component.rb
+│           │   └── submission_modal_component.rb
+│           ├── layouts/
+│           │   └── application_layout.rb
+│           └── shared/
+│               ├── flash_component.rb
+│               └── theme_toggle_component.rb
 ├── bin/                        # Executable scripts
 │   ├── dev                     # Start development server
 │   ├── rails                   # Rails CLI
@@ -40,9 +62,17 @@ feedbackhub/
 ├── public/                     # Static files served directly
 ├── test/                       # Test suite
 │   ├── controllers/            # Controller tests
+│   │   ├── hub_controller_test.rb
+│   │   ├── feedback_controller_test.rb
+│   │   └── admin/
+│   │       └── templates_controller_test.rb
 │   ├── fixtures/               # Test data
+│   │   ├── feedback_templates.yml
+│   │   └── feedback_submissions.yml
 │   ├── models/                 # Model tests
-│   └── system/                 # System/integration tests
+│   │   ├── feedback_template_test.rb
+│   │   └── feedback_submission_test.rb
+│   └── test_helper.rb
 ├── .claude/                    # Claude Code configuration
 │   ├── agents/                 # Sub-agent definitions
 │   ├── commands/               # Custom commands
@@ -69,40 +99,45 @@ feedbackhub/
 
 ## Phlex View Organization
 
-Views mirror the controller structure:
+Components use PhlexyUI (DaisyUI wrapper) and are organized by domain:
 
 ```
 app/views/
-├── application_view.rb         # Base view class
-├── components/
-│   ├── button.rb
-│   ├── card.rb
-│   └── form_field.rb
-├── layouts/
-│   └── application_layout.rb
-├── posts/
-│   ├── index_view.rb
-│   ├── show_view.rb
-│   ├── new_view.rb
-│   └── edit_view.rb
-└── shared/
-    └── _flash.rb
+├── base.rb                     # Views::Base (for non-component views)
+└── components/
+    ├── application_component.rb  # Root component (includes PhlexyUI)
+    ├── base.rb                   # Components::Base (utility methods)
+    ├── admin/
+    │   ├── template_form_component.rb
+    │   └── template_list_component.rb
+    ├── feedback/
+    │   ├── card_component.rb
+    │   ├── form_component.rb
+    │   └── success_component.rb
+    ├── hub/
+    │   ├── index_component.rb
+    │   └── submission_modal_component.rb
+    ├── layouts/
+    │   └── application_layout.rb
+    └── shared/
+        ├── flash_component.rb
+        └── theme_toggle_component.rb
 ```
 
 ## Naming Conventions
 
-### Views
-- Class name: `Views::Posts::IndexView` or `Views::Posts::Index`
-- File name: `app/views/posts/index_view.rb` or `app/views/posts/index.rb`
-
 ### Components
-- Class name: `Components::Button`
-- File name: `app/views/components/button.rb`
+- Class name: `Admin::TemplateFormComponent`
+- File name: `app/views/components/admin/template_form_component.rb`
+
+### Shared Components
+- Class name: `Shared::FlashComponent`
+- File name: `app/views/components/shared/flash_component.rb`
 
 ### Stimulus Controllers
 - Class name: N/A (JavaScript)
-- File name: `app/javascript/controllers/dropdown_controller.js`
-- HTML: `data-controller="dropdown"`
+- File name: `app/javascript/controllers/form_controller.js`
+- HTML: `data-controller="form"`
 
 ## Test Organization
 
@@ -111,13 +146,15 @@ Tests mirror the app structure:
 ```
 test/
 ├── controllers/
-│   └── posts_controller_test.rb
+│   ├── hub_controller_test.rb
+│   ├── feedback_controller_test.rb
+│   └── admin/
+│       └── templates_controller_test.rb
 ├── fixtures/
-│   ├── posts.yml
-│   └── users.yml
+│   ├── feedback_templates.yml
+│   └── feedback_submissions.yml
 ├── models/
-│   └── post_test.rb
-├── system/
-│   └── posts_test.rb
+│   ├── feedback_template_test.rb
+│   └── feedback_submission_test.rb
 └── test_helper.rb
 ```

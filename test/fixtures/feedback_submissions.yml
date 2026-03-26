@@ -1,0 +1,29 @@
+high_priority:
+  feedback_template: csr_feedback
+  csr_name: "Jane Doe"
+  submitted_by: "John Smith"
+  data:
+    ticket_number: "TK-001"
+    csr: "Jane Doe"
+    feedback_type: "Knowledge Gap"
+    impact: "Resolution Time"
+    priority: "High"
+    submitted_by: "John Smith"
+
+low_priority:
+  feedback_template: csr_feedback
+  csr_name: "Jane Doe"
+  submitted_by: "Alice Wong"
+  data:
+    ticket_number: "TK-002"
+    csr: "Jane Doe"
+    feedback_type: "Process Failure"
+    impact: "Client Experience"
+    priority: "Low"
+    submitted_by: "Alice Wong"
+
+simple_submission:
+  feedback_template: simple_template
+  data:
+    comment: "Good job"
+    priority: "Medium"

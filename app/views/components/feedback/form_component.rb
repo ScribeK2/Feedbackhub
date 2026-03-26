@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Feedback
   class FormComponent < ApplicationComponent
     include Phlex::Rails::Helpers::FormWith
@@ -11,9 +13,11 @@ module Feedback
     end
 
     def view_template
-      div(class: "card bg-base-100 shadow-xl max-w-2xl mx-auto") do
-        div(class: "card-body") do
-          h2(class: "card-title text-2xl mb-6") { "Submit Feedback" }
+      Card :base_100, class: "shadow-xl max-w-2xl mx-auto" do |card|
+        card.body do
+          card.title class: "text-2xl mb-6" do
+            plain "Submit Feedback"
+          end
 
           render_template_selector
           render_form_frame
@@ -25,7 +29,7 @@ module Feedback
 
     def render_template_selector
       form_with(
-        url: helpers.form_feedback_index_path,
+        url: form_feedback_index_path,
         method: :get,
         data: { turbo_frame: "feedback_form", controller: "form" }
       ) do |f|
@@ -66,7 +70,7 @@ module Feedback
     def render_dynamic_form
       form_with(
         model: @submission,
-        url: helpers.feedback_index_path,
+        url: feedback_index_path,
         data: { controller: "other-field" }
       ) do |f|
         hidden_field_tag :feedback_template_id, @selected_template.id
@@ -76,7 +80,7 @@ module Feedback
         end
 
         div(class: "form-control mt-6") do
-          button(type: "submit", class: "btn btn-primary") { "Submit Feedback" }
+          Button(:primary, type: :submit) { "Submit Feedback" }
         end
       end
     end
@@ -136,7 +140,7 @@ module Feedback
 
     def render_richtext_field(field)
       div(class: "min-h-[200px]") do
-        raw helpers.rich_text_area_tag(
+        raw view_context.rich_text_area_tag(
           "feedback_submission[#{field[:name]}]",
           @submission.send(field[:name]),
           class: "trix-content"

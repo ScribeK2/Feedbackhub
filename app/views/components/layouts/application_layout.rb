@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Layouts
   class ApplicationLayout < ApplicationComponent
     include Phlex::Rails::Layout
@@ -26,7 +28,7 @@ module Layouts
         body(class: "min-h-screen bg-base-200") do
           render_header
           main(class: "container mx-auto px-4 py-8 pt-24") do
-            render Shared::FlashComponent.new(flash: helpers.flash)
+            render Shared::FlashComponent.new(flash: flash)
             yield
           end
         end
@@ -38,33 +40,31 @@ module Layouts
     def render_header
       header(class: "navbar-glass fixed top-0 left-0 right-0 z-50") do
         div(class: "container mx-auto px-4") do
-          div(class: "navbar min-h-16") do
-            div(class: "flex-1") do
-              a(href: helpers.root_path, class: "flex items-center gap-2 text-xl font-bold hover:opacity-80 transition-opacity") do
+          Navbar class: "min-h-16" do |navbar|
+            navbar.start do
+              a(href: root_path, class: "flex items-center gap-2 text-xl font-bold hover:opacity-80 transition-opacity") do
                 render_logo
                 span { "FeedbackHub" }
               end
             end
-            div(class: "flex-none") do
+            navbar.send(:end) do
               nav(class: "flex items-center gap-1") do
-                a(href: helpers.hub_path, class: "nav-link") do
-                  render_icon("M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6")
-                  span { "Hub" }
-                end
-                a(href: helpers.new_feedback_path, class: "nav-link") do
-                  render_icon("M12 4v16m8-8H4")
-                  span { "Submit" }
-                end
-                a(href: helpers.admin_templates_path, class: "nav-link") do
-                  render_icon("M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z")
-                  span { "Templates" }
-                end
+                render_nav_link(hub_path, "Hub", "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6")
+                render_nav_link(new_feedback_path, "Submit", "M12 4v16m8-8H4")
+                render_nav_link(admin_templates_path, "Templates", "M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z")
                 div(class: "divider divider-horizontal mx-2 h-6 self-center")
                 render Shared::ThemeToggleComponent.new
               end
             end
           end
         end
+      end
+    end
+
+    def render_nav_link(href, label, icon_path)
+      a(href: href, class: "nav-link") do
+        render_icon(icon_path)
+        span { label }
       end
     end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Shared
   class FlashComponent < ApplicationComponent
     def initialize(flash:)
@@ -9,7 +11,7 @@ module Shared
 
       div(class: "toast toast-top toast-end z-50") do
         @flash.each do |type, message|
-          div(class: "alert #{alert_class(type)}") do
+          Alert alert_modifier(type) do
             span { message }
           end
         end
@@ -18,16 +20,12 @@ module Shared
 
     private
 
-    def alert_class(type)
+    def alert_modifier(type)
       case type.to_s
-      when "notice", "success"
-        "alert-success"
-      when "alert", "error"
-        "alert-error"
-      when "warning"
-        "alert-warning"
-      else
-        "alert-info"
+      when "notice", "success" then :success
+      when "alert", "error" then :error
+      when "warning" then :warning
+      else :info
       end
     end
   end

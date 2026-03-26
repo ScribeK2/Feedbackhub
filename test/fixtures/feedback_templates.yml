@@ -1,0 +1,63 @@
+csr_feedback:
+  name: "CSR Feedback"
+  field_schema:
+    - name: "ticket_number"
+      label: "Ticket #"
+      type: "string"
+      required: true
+    - name: "csr"
+      label: "CSR"
+      type: "string"
+      required: true
+    - name: "feedback_type"
+      label: "Feedback Type"
+      type: "select"
+      options:
+        - "Invalid Ticket"
+        - "Knowledge Gap"
+        - "Process Failure"
+        - "Other"
+      has_other: true
+      required: true
+    - name: "impact"
+      label: "Impact"
+      type: "select"
+      options:
+        - "Resolution Time"
+        - "Client Experience"
+        - "Team Workload"
+        - "Other"
+      has_other: true
+      required: true
+    - name: "priority"
+      label: "Priority"
+      type: "select"
+      options:
+        - "Low"
+        - "Medium"
+        - "High"
+      required: true
+    - name: "submitted_by"
+      label: "Submitted By"
+      type: "string"
+      required: true
+    - name: "feedback_details"
+      label: "Feedback Details"
+      type: "richtext"
+      required: false
+
+simple_template:
+  name: "Simple Feedback"
+  field_schema:
+    - name: "comment"
+      label: "Comment"
+      type: "string"
+      required: true
+    - name: "priority"
+      label: "Priority"
+      type: "select"
+      options:
+        - "Low"
+        - "Medium"
+        - "High"
+      required: true

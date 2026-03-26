@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Hub
   class SubmissionModalComponent < ApplicationComponent
     def initialize(submission:)
@@ -5,18 +7,13 @@ module Hub
     end
 
     def view_template
-      dialog(
+      Modal :tap_outside_to_close,
         id: "submission-#{@submission.id}",
-        class: "modal",
-        data: { modal_target: "dialog" }
-      ) do
-        div(class: "modal-box max-w-2xl bg-base-100/95 backdrop-blur-md") do
+        data: { modal_target: "dialog" } do |modal|
+        modal.body class: "max-w-2xl bg-base-100/95 backdrop-blur-md" do
           render_header
           render_content
-          render_footer
-        end
-        form(method: "dialog", class: "modal-backdrop") do
-          button { "close" }
+          render_footer(modal)
         end
       end
     end
@@ -28,10 +25,10 @@ module Hub
         div do
           h3(class: "font-bold text-xl") { @submission.feedback_template.name }
           p(class: "text-sm text-base-content/60") do
-            plain "Submitted #{helpers.time_ago_in_words(@submission.created_at)} ago"
+            plain "Submitted #{time_ago_in_words(@submission.created_at)} ago"
           end
         end
-        span(class: "badge #{priority_badge} badge-lg") do
+        Badge priority_modifier, :lg do
           plain @submission.data["priority"] || "—"
         end
       end
@@ -70,24 +67,18 @@ module Hub
       end
     end
 
-    def render_footer
-      div(class: "modal-action") do
-        form(method: "dialog") do
-          button(class: "btn") { "Close" }
-        end
+    def render_footer(modal)
+      modal.action do
+        modal.close_button { "Close" }
       end
     end
 
-    def priority_badge
+    def priority_modifier
       case @submission.data["priority"]
-      when "High"
-        "badge-error"
-      when "Medium"
-        "badge-warning"
-      when "Low"
-        "badge-success"
-      else
-        "badge-ghost"
+      when "High" then :error
+      when "Medium" then :warning
+      when "Low" then :success
+      else :ghost
       end
     end
   end

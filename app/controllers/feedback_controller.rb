@@ -25,7 +25,7 @@ class FeedbackController < ApplicationController
         format.turbo_stream do
           render turbo_stream: turbo_stream.replace(
             "feedback_form",
-            partial: "feedback/success"
+            Feedback::SuccessComponent.new
           )
         end
         format.html { redirect_to hub_path, notice: "Feedback submitted successfully!" }

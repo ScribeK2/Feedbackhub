@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Hub
   class IndexComponent < ApplicationComponent
     include Phlex::Rails::Helpers::TurboStreamFrom
@@ -23,44 +25,26 @@ module Hub
     def render_header
       div(class: "flex justify-between items-center") do
         h1(class: "text-3xl font-bold") { "Feedback Hub" }
-        a(href: helpers.new_feedback_path, class: "btn btn-primary") { "Submit Feedback" }
+        Button(:primary, as: :a, href: new_feedback_path) { "Submit Feedback" }
       end
     end
 
     def render_tabs
-      div(role: "tablist", class: "tabs tabs-lifted tabs-lg") do
-        input(
-          type: "radio",
-          name: "hub_tabs",
-          role: "tab",
-          class: "tab",
-          aria_label: "By CSR",
-          checked: true
-        )
-        div(role: "tabpanel", class: "tab-content bg-base-100 border-base-300 rounded-box p-6") do
-          render_csr_view
+      Tabs :lifted, :lg, id: "hub_tabs" do |tabs|
+        tabs.tab "By CSR", :open do |tab|
+          tab.content class: "bg-base-100 border-base-300 rounded-box p-6" do
+            render_csr_view
+          end
         end
-
-        input(
-          type: "radio",
-          name: "hub_tabs",
-          role: "tab",
-          class: "tab",
-          aria_label: "By Submitter"
-        )
-        div(role: "tabpanel", class: "tab-content bg-base-100 border-base-300 rounded-box p-6") do
-          render_submitter_view
+        tabs.tab "By Submitter" do |tab|
+          tab.content class: "bg-base-100 border-base-300 rounded-box p-6" do
+            render_submitter_view
+          end
         end
-
-        input(
-          type: "radio",
-          name: "hub_tabs",
-          role: "tab",
-          class: "tab",
-          aria_label: "All"
-        )
-        div(role: "tabpanel", class: "tab-content bg-base-100 border-base-300 rounded-box p-6") do
-          render_all_view
+        tabs.tab "All" do |tab|
+          tab.content class: "bg-base-100 border-base-300 rounded-box p-6" do
+            render_all_view
+          end
         end
       end
     end
@@ -106,7 +90,7 @@ module Hub
         input(type: "checkbox", checked: true)
         div(class: "collapse-title text-lg font-medium flex items-center gap-2") do
           plain name
-          span(class: "badge badge-neutral") { submissions.size }
+          Badge(:neutral) { submissions.size }
         end
         div(class: "collapse-content") do
           div(class: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2") do
@@ -121,7 +105,9 @@ module Hub
     def render_empty_state
       div(class: "text-center py-12") do
         p(class: "text-base-content/60 text-lg") { "No feedback submissions yet." }
-        a(href: helpers.new_feedback_path, class: "btn btn-primary mt-4") { "Submit First Feedback" }
+        Button(:primary, as: :a, href: new_feedback_path, class: "mt-4") do
+          plain "Submit First Feedback"
+        end
       end
     end
 
