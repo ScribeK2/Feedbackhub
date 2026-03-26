@@ -1,0 +1,20 @@
+class FeedbackSubmission < ApplicationRecord
+  belongs_to :feedback_template
+  has_rich_text :feedback_details
+
+  before_save :extract_grouping_fields
+
+  after_create_commit do
+    broadcast_prepend_to "feedback_submissions",
+      target: "submissions",
+      partial: "feedback/card",
+      locals: { submission: self }
+  end
+
+  private
+
+  def extract_grouping_fields
+    self.csr_name = data["csr"].presence
+    self.submitted_by = data["submitted_by"].presence
+  end
+end

@@ -1,0 +1,22 @@
+<div class="card bg-base-100/80 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+     style="view-transition-name: card-<%= submission.id %>"
+     data-action="click->modal#open"
+     data-modal-id-param="submission-<%= submission.id %>">
+  <div class="card-body p-4">
+    <div class="flex justify-between items-start mb-2">
+      <h3 class="card-title text-sm font-semibold">
+        <%= submission.feedback_template.name %>
+      </h3>
+      <span class="badge badge-sm <%= priority_badge_class(submission.data['priority']) %>">
+        <%= submission.data["priority"] || "—" %>
+      </span>
+    </div>
+    <div class="text-sm text-base-content/70 line-clamp-2 mb-3">
+      <%= submission.data["feedback_type"] %>
+    </div>
+    <div class="flex justify-between items-center text-xs text-base-content/50">
+      <span>Ticket: <%= submission.data["ticket_number"] || "—" %></span>
+      <span><%= time_ago_in_words(submission.created_at) %> ago</span>
+    </div>
+  </div>
+</div>

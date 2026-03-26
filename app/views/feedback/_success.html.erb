@@ -1,0 +1,15 @@
+<turbo-frame id="feedback_form">
+  <div class="text-center py-8">
+    <div class="text-success text-5xl mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
+    <h3 class="text-2xl font-bold mb-2">Feedback Submitted!</h3>
+    <p class="text-base-content/60 mb-6">Your feedback has been recorded successfully.</p>
+    <div class="flex justify-center gap-4">
+      <%= link_to "Submit Another", new_feedback_path, class: "btn btn-primary" %>
+      <%= link_to "View Hub", hub_path, class: "btn btn-ghost" %>
+    </div>
+  </div>
+</turbo-frame>

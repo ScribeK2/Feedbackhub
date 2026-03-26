@@ -1,0 +1,6 @@
+#!/bin/bash
+set -e
+cd /rails/storage
+for db in *.sqlite3; do
+  sqlite3 "$db" ".backup '${db}.backup'"
+done
