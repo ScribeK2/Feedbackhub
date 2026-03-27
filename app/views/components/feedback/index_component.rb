@@ -153,10 +153,10 @@ module Feedback
 
     def render_priority_badge(submission)
       modifier = case submission.priority
-                 when "High" then :error
-                 when "Medium" then :warning
-                 when "Low" then :success
-                 else :ghost
+      when "High" then :error
+      when "Medium" then :warning
+      when "Low" then :success
+      else :ghost
       end
       Badge modifier, :sm do
         plain submission.priority || "—"
