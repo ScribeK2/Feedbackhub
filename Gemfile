@@ -19,6 +19,9 @@ gem "solid_queue"
 gem "solid_cache"
 gem "solid_cable"
 
+# Authentication
+gem "bcrypt", "~> 3.1"
+
 # Rich text
 gem "lexxy", "~> 0.9.0.beta"
 gem "image_processing", "~> 1.2"

@@ -6,4 +6,6 @@ class ApplicationComponent < Phlex::HTML
   include Phlex::Rails::Helpers::TimeAgoInWords
   include Phlex::Rails::Helpers::FormAuthenticityToken
   include PhlexyUI
+
+  delegate :current_user, to: :view_context
 end

@@ -4,6 +4,7 @@ require "test_helper"
 
 class Admin::TemplatesControllerTest < ActionDispatch::IntegrationTest
   setup do
+    sign_in_as_admin
     @template = feedback_templates(:simple_template)
   end
 
@@ -91,5 +92,18 @@ class Admin::TemplatesControllerTest < ActionDispatch::IntegrationTest
       delete admin_template_path(@template)
     end
     assert_redirected_to admin_templates_path
+  end
+
+  test "regular user cannot access admin templates" do
+    delete logout_path
+    sign_in_as_user
+    get admin_templates_path
+    assert_redirected_to root_path
+  end
+
+  test "unauthenticated user is redirected to login" do
+    delete logout_path
+    get admin_templates_path
+    assert_redirected_to login_path
   end
 end

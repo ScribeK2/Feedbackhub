@@ -1,0 +1,7 @@
+dns_guide:
+  title: "DNS Troubleshooting Guide"
+  author_id: <%= ActiveRecord::FixtureSet.identify(:admin) %>
+
+policy_doc:
+  title: "Escalation Policy"
+  author_id: <%= ActiveRecord::FixtureSet.identify(:regular) %>

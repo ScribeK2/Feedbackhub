@@ -1,5 +1,6 @@
 module Admin
   class TemplatesController < ApplicationController
+    before_action :require_admin
     before_action :set_template, only: %i[edit update destroy]
 
     def index

@@ -2,6 +2,9 @@ high_priority:
   feedback_template: csr_feedback
   csr_name: "Jane Doe"
   submitted_by: "John Smith"
+  priority: "High"
+  feedback_type: "Knowledge Gap"
+  ticket_number: "TK-001"
   data:
     ticket_number: "TK-001"
     csr: "Jane Doe"
@@ -14,6 +17,9 @@ low_priority:
   feedback_template: csr_feedback
   csr_name: "Jane Doe"
   submitted_by: "Alice Wong"
+  priority: "Low"
+  feedback_type: "Process Failure"
+  ticket_number: "TK-002"
   data:
     ticket_number: "TK-002"
     csr: "Jane Doe"
@@ -24,6 +30,7 @@ low_priority:
 
 simple_submission:
   feedback_template: simple_template
+  priority: "Medium"
   data:
     comment: "Good job"
     priority: "Medium"

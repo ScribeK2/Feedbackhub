@@ -1,3 +1,12 @@
+User.find_or_create_by!(email: "admin@feedbackhub.local") do |u|
+  u.name = "Admin"
+  u.password = "password"
+  u.password_confirmation = "password"
+  u.role = "admin"
+end
+
+puts "Created admin user (admin@feedbackhub.local / password)"
+
 FeedbackTemplate.find_or_create_by!(name: "CSR Feedback") do |t|
   t.field_schema = [
     { name: "ticket_number", label: "Ticket #", type: "string", required: true },

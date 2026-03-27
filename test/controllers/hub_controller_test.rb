@@ -3,18 +3,23 @@
 require "test_helper"
 
 class HubControllerTest < ActionDispatch::IntegrationTest
-  test "index renders successfully" do
+  setup do
+    sign_in_as_user
+  end
+
+  test "index renders dashboard successfully" do
     get hub_path
     assert_response :success
   end
 
-  test "root path renders hub index" do
+  test "root path renders dashboard" do
     get root_path
     assert_response :success
   end
 
-  test "index loads submissions" do
+  test "unauthenticated user is redirected to login" do
+    delete logout_path
     get hub_path
-    assert_response :success
+    assert_redirected_to login_path
   end
 end

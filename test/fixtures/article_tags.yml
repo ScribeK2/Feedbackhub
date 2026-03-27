@@ -1,0 +1,11 @@
+dns_networking:
+  article: dns_guide
+  tag: networking
+
+dns_troubleshooting:
+  article: dns_guide
+  tag: troubleshooting
+
+policy_policy:
+  article: policy_doc
+  tag: policy
