@@ -23,7 +23,7 @@ gem "solid_cable"
 gem "bcrypt", "~> 3.1"
 
 # Rich text
-gem "lexxy", "~> 0.9.0.beta"
+gem "lexxy", "~> 0.9.10.beta"
 gem "image_processing", "~> 1.2"
 
 # Code highlighting
