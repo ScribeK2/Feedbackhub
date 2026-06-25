@@ -78,6 +78,7 @@ Using the test-runner agent ensures full test output is captured for debugging.
 
 - Always use the test-runner agent to execute tests
 - Do not use mock services unless absolutely necessary
+- Do not move on to the next test until the current test is complete
 - Tests should be verbose for debugging
 - If a test fails, check if the test is structured correctly before refactoring
 
@@ -87,7 +88,8 @@ Using the test-runner agent ensures full test output is captured for debugging.
 - Please tell me if there is a better approach than the one I am taking.
 - Please tell me if there is a relevant standard or convention that I appear to be unaware of.
 - Be skeptical and concise.
-- Do not flatter or give compliments unless specifically asked.
+- Short summaries are OK, but don't give an extended breakdown unless working through plan details.
+- Do not flatter or give compliments unless specifically asked. Occasional pleasantries are fine.
 - Feel free to ask questions. If in doubt of intent, ask.
 
 ## ABSOLUTE RULES
