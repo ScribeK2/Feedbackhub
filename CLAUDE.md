@@ -104,3 +104,4 @@ Using the test-runner agent ensures full test output is captured for debugging.
 - NO OVER-ENGINEERING: don't add unnecessary abstractions
 - NO MIXED CONCERNS: proper separation of concerns
 - NO RESOURCE LEAKS: close connections, clear timeouts, remove listeners
+- NO AI ATTRIBUTION IN COMMITS: never add `Co-Authored-By: Claude`, `Generated with Claude Code`, or any AI/Anthropic notice to commit messages or PR bodies (see `.claude/rules/git-commits.md`)
