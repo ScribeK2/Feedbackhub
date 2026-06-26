@@ -49,7 +49,7 @@ module Articles
     end
 
     def render_body
-      Card class: "glass-card" do |card|
+      Card class: "surface" do |card|
         card.body do
           if @article.body.present?
             div(class: "prose max-w-none") do

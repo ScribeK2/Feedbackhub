@@ -8,7 +8,7 @@ module Articles
 
     def view_template
       a(href: article_path(@article), class: "block") do
-        Card class: "glass-card hover:shadow-xl transition-all duration-300 cursor-pointer h-full" do |card|
+        Card class: "surface surface-raised cursor-pointer h-full" do |card|
           card.body do
             h2(class: "card-title text-lg") { @article.title }
             p(class: "text-sm text-base-content/60 mb-3") do

@@ -10,7 +10,7 @@ module Hub
       Modal :tap_outside_to_close,
         id: "submission-#{@submission.id}",
         data: { modal_target: "dialog" } do |modal|
-        modal.body class: "max-w-2xl bg-base-100/95 backdrop-blur-md" do
+        modal.body class: "max-w-2xl surface-overlay" do
           render_header
           render_content
           render_footer(modal)

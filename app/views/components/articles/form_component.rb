@@ -12,7 +12,7 @@ module Articles
           plain @article.new_record? ? "New Article" : "Edit Article"
         end
 
-        Card class: "glass-card" do |card|
+        Card class: "surface" do |card|
           card.body do
             render_form
           end

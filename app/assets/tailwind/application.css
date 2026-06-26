@@ -72,92 +72,6 @@
 }
 
 @layer base {
-  /* Glassmorphism Navbar - Light themes */
-  .navbar-glass {
-    --glass-bg: rgba(255, 255, 255, 0.75);
-    --glass-border: rgba(0, 0, 0, 0.08);
-    background: var(--glass-bg);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    backdrop-filter: blur(16px) saturate(180%);
-    border-bottom: 1px solid var(--glass-border);
-    box-shadow:
-      0 4px 6px -1px rgba(0, 0, 0, 0.05),
-      0 2px 4px -2px rgba(0, 0, 0, 0.05);
-  }
-
-  /* Glassmorphism Navbar - Dark themes */
-  [data-theme="dark"] .navbar-glass {
-    --glass-bg: rgba(30, 35, 42, 0.75);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    box-shadow:
-      0 4px 6px -1px rgba(0, 0, 0, 0.3),
-      0 2px 4px -2px rgba(0, 0, 0, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  }
-
-  [data-theme="business"] .navbar-glass {
-    --glass-bg: rgba(28, 32, 38, 0.8);
-    --glass-border: rgba(255, 255, 255, 0.06);
-    box-shadow:
-      0 4px 6px -1px rgba(0, 0, 0, 0.3),
-      0 2px 4px -2px rgba(0, 0, 0, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  }
-
-  [data-theme="corporate"] .navbar-glass {
-    --glass-bg: rgba(255, 255, 255, 0.8);
-    --glass-border: rgba(0, 61, 107, 0.08);
-  }
-
-  /* Navigation Links */
-  .nav-link {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.875rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    border-radius: 0.5rem;
-    opacity: 0.7;
-    transition: all 0.2s ease;
-  }
-
-  .nav-link:hover {
-    background: rgba(0, 0, 0, 0.05);
-    opacity: 1;
-  }
-
-  [data-theme="dark"] .nav-link:hover,
-  [data-theme="business"] .nav-link:hover {
-    background: rgba(255, 255, 255, 0.08);
-  }
-
-  .nav-link:active {
-    transform: scale(0.98);
-  }
-
-  /* Glassmorphism Cards */
-  .glass-card {
-    --card-bg: rgba(255, 255, 255, 0.6);
-    --card-border: rgba(0, 0, 0, 0.08);
-    background: var(--card-bg);
-    -webkit-backdrop-filter: blur(12px) saturate(150%);
-    backdrop-filter: blur(12px) saturate(150%);
-    border: 1px solid var(--card-border);
-    box-shadow:
-      0 4px 6px -1px rgba(0, 0, 0, 0.05),
-      0 2px 4px -2px rgba(0, 0, 0, 0.05);
-  }
-
-  [data-theme="dark"] .glass-card,
-  [data-theme="business"] .glass-card {
-    --card-bg: rgba(30, 35, 42, 0.5);
-    --card-border: rgba(255, 255, 255, 0.06);
-    box-shadow:
-      0 4px 6px -1px rgba(0, 0, 0, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  }
-
   /* Modal/Dialog styling */
   dialog::backdrop {
     background: rgba(0, 0, 0, 0.5);
@@ -169,9 +83,50 @@
     background: transparent;
   }
 
-  .modal-box {
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
+  /* ---- Surface system (single depth language) ---- */
+  [data-theme="fh-light"] {
+    --surface-bg: oklch(100% 0 0 / 0.72);
+    --surface-border: oklch(0% 0 0 / 0.08);
+    --surface-shadow: 0 1px 2px oklch(0% 0 0 / 0.04), 0 4px 16px oklch(0% 0 0 / 0.06);
+    --surface-shadow-raised: 0 6px 12px oklch(0% 0 0 / 0.08), 0 16px 32px oklch(0% 0 0 / 0.12);
+    --overlay-bg: oklch(100% 0 0 / 0.80);
+    --overlay-blur: blur(16px) saturate(180%);
+  }
+  [data-theme="fh-dark"] {
+    --surface-bg: oklch(28% 0.016 252 / 0.55);
+    --surface-border: oklch(100% 0 0 / 0.08);
+    --surface-shadow: 0 1px 2px oklch(0% 0 0 / 0.30), 0 4px 16px oklch(0% 0 0 / 0.35);
+    --surface-shadow-raised: 0 6px 12px oklch(0% 0 0 / 0.40), 0 16px 32px oklch(0% 0 0 / 0.45);
+    --overlay-bg: oklch(24% 0.014 252 / 0.80);
+    --overlay-blur: blur(16px) saturate(180%);
+  }
+
+  .surface {
+    background: var(--surface-bg);
+    border: 1px solid var(--surface-border);
+    box-shadow: var(--surface-shadow);
+    border-radius: var(--radius-box);
+  }
+  .surface-overlay {
+    background: var(--overlay-bg);
+    border: 1px solid var(--surface-border);
+    box-shadow: var(--surface-shadow-raised);
+    border-radius: var(--radius-box);
+    -webkit-backdrop-filter: var(--overlay-blur);
+    backdrop-filter: var(--overlay-blur);
+  }
+  .app-bar {
+    background: var(--overlay-bg);
+    border-bottom: 1px solid var(--surface-border);
+    -webkit-backdrop-filter: var(--overlay-blur);
+    backdrop-filter: var(--overlay-blur);
+  }
+  .surface-raised {
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .surface-raised:hover {
+    box-shadow: var(--surface-shadow-raised);
+    transform: translateY(-2px);
   }
 
   /* Smooth scrolling */

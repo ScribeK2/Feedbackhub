@@ -9,7 +9,7 @@ module Dashboard
     end
 
     def view_template
-      Card class: "glass-card" do |card|
+      Card class: "surface" do |card|
         card.body class: "items-center text-center" do
           h2(class: "card-title text-sm font-medium opacity-70") { @title }
           div(class: "text-4xl font-bold mt-2") do

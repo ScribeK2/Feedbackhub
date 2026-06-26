@@ -23,7 +23,7 @@ module Tools
 
     def render_tool_card(tool)
       a(href: tool["url"], target: "_blank", rel: "noopener noreferrer", class: "block") do
-        Card class: "glass-card hover:shadow-xl transition-all duration-300 cursor-pointer h-full" do |card|
+        Card class: "surface surface-raised cursor-pointer h-full" do |card|
           card.body class: "items-center text-center" do
             div(class: "mb-3") do
               render_icon(tool["icon"])

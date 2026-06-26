@@ -8,7 +8,7 @@ module Feedback
 
     def view_template
       Card as: :div,
-        class: "bg-base-100/80 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer",
+        class: "surface surface-raised cursor-pointer",
         style: "view-transition-name: card-#{@submission.id}",
         data: { action: "click->modal#open", modal_id_param: "submission-#{@submission.id}" } do |card|
         card.body class: "p-4" do
@@ -53,7 +53,7 @@ module Feedback
       div(
         popover: "auto",
         id: "popover-#{@submission.id}",
-        class: "bg-base-100 rounded-lg shadow-xl p-4 max-w-sm"
+        class: "surface-overlay p-4 max-w-sm"
       ) do
         h4(class: "font-bold mb-2") { @submission.feedback_template.name }
         dl(class: "text-sm space-y-1") do

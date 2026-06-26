@@ -4,7 +4,7 @@ module Sessions
   class LoginComponent < ApplicationComponent
     def view_template
       div(class: "flex items-center justify-center min-h-[60vh]") do
-        Card class: "glass-card w-full max-w-md" do |card|
+        Card class: "surface w-full max-w-md" do |card|
           card.body do
             h2(class: "card-title text-2xl font-bold mb-6 justify-center") { "Sign In" }
 

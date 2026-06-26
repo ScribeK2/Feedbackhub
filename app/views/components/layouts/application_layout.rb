@@ -38,7 +38,7 @@ module Layouts
     private
 
     def render_header
-      header(class: "navbar-glass fixed top-0 left-0 right-0 z-50") do
+      header(class: "app-bar fixed top-0 left-0 right-0 z-50") do
         div(class: "container mx-auto px-4") do
           nav(class: "flex items-center min-h-16 py-2 gap-4") do
             div(class: "flex-1") do

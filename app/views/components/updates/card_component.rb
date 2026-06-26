@@ -7,7 +7,7 @@ module Updates
     end
 
     def view_template
-      Card class: "glass-card" do |card|
+      Card class: "surface" do |card|
         card.body do
           render_header
           render_body

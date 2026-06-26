@@ -4,7 +4,7 @@ module Updates
   class FormComponent < ApplicationComponent
     def view_template
       Modal :tap_outside_to_close, id: "new-update-modal" do |modal|
-        modal.body class: "max-w-2xl bg-base-100/95 backdrop-blur-md" do
+        modal.body class: "max-w-2xl surface-overlay" do
           h3(class: "font-bold text-xl mb-4") { "Add New Update" }
           render_form
           modal.action do

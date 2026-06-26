@@ -7,7 +7,7 @@ module Dashboard
     end
 
     def view_template
-      Card class: "glass-card" do |card|
+      Card class: "surface" do |card|
         card.body do
           h2(class: "card-title text-lg font-bold mb-4") { "Recent Activity" }
           if @items.empty?
