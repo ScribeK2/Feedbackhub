@@ -2,7 +2,7 @@
 
 module Shared
   class ThemeToggleComponent < ApplicationComponent
-    THEMES = %w[light dark corporate business].freeze
+    THEMES = { "fh-light" => "Light", "fh-dark" => "Dark" }.freeze
 
     def view_template
       Dropdown :end, data: { controller: "theme" } do |dropdown|
@@ -10,12 +10,12 @@ module Shared
           render_moon_icon
         end
         dropdown.menu :base_100, class: "shadow-lg rounded-box w-36 z-[1]" do |menu|
-          THEMES.each do |theme|
+          THEMES.each do |value, label|
             menu.item do
               button(
                 type: "button",
-                data: { action: "click->theme#setTheme", "theme-value": theme }
-              ) { theme.capitalize }
+                data: { action: "click->theme#setTheme", "theme-value": value }
+              ) { label }
             end
           end
         end

@@ -14,7 +14,7 @@ module Layouts
 
     def view_template
       doctype
-      html(data: { theme: "corporate" }) do
+      html(data: { theme: "fh-light" }) do
         head do
           title { @title }
           meta(name: "viewport", content: "width=device-width, initial-scale=1")
