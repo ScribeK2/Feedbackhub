@@ -133,9 +133,9 @@ module Layouts
           render_icon("M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z")
           span(class: "hidden lg:inline") { current_user.name }
         end
-        dropdown.menu :base_100, class: "w-48 mt-2 shadow-lg" do |menu|
+        dropdown.menu :base_100, class: "w-64 mt-2 shadow-lg" do |menu|
           menu.item do
-            span(class: "text-sm opacity-60") { current_user.email }
+            span(class: "block truncate text-sm opacity-60", title: current_user.email) { current_user.email }
           end
           if current_user.admin?
             menu.item do

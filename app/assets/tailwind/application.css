@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
+/* PhlexyUI builds some DaisyUI modifier classes dynamically (e.g. `Dropdown :end`),
+   so the literal string never appears in scanned source and Tailwind would purge it.
+   Force-include the ones we rely on. */
+@source inline("dropdown-end");
+
 @plugin "daisyui/theme" {
   name: "fh-light";
   default: true;
