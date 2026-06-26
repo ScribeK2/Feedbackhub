@@ -11,7 +11,7 @@ module Shared
 
       div(class: "toast toast-top toast-end z-50") do
         @flash.each do |type, message|
-          Alert alert_modifier(type) do
+          Alert alert_modifier(type), class: "alert-soft max-w-sm whitespace-normal shadow-lg" do
             span { message }
           end
         end

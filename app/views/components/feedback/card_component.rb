@@ -28,7 +28,7 @@ module Feedback
         h3(class: "card-title text-sm font-semibold") do
           plain @submission.feedback_template.name
         end
-        Badge priority_modifier, :sm do
+        Badge priority_modifier, :sm, class: "badge-soft" do
           plain @submission.data["priority"] || "—"
         end
       end
