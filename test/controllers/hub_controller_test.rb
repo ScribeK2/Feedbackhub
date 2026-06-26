@@ -22,4 +22,32 @@ class HubControllerTest < ActionDispatch::IntegrationTest
     get hub_path
     assert_redirected_to login_path
   end
+
+  test "recent activity feedback title links to feedback list filtered by ticket" do
+    get hub_path
+    assert_select "#recent_activity a[href=?]", feedback_index_path(q: "TK-001")
+    assert_select "#recent_activity a[href=?]", feedback_index_path(q: "TK-002")
+  end
+
+  test "recent activity feedback without a ticket links to the plain feedback list" do
+    # the simple_submission fixture has no ticket_number
+    get hub_path
+    assert_select "#recent_activity a[href=?]", feedback_index_path
+  end
+
+  test "recent activity article title links to the article show page" do
+    get hub_path
+    assert_select "#recent_activity a[href=?]", article_path(articles(:dns_guide))
+    assert_select "#recent_activity a[href=?]", article_path(articles(:policy_doc))
+  end
+
+  test "recent activity update title links to the updates list" do
+    get hub_path
+    assert_select "#recent_activity a[href=?]", updates_path
+  end
+
+  test "recent activity titles carry the link affordance class" do
+    get hub_path
+    assert_select "#recent_activity a.link"
+  end
 end

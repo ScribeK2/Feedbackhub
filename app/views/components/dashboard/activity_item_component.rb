@@ -37,7 +37,7 @@ module Dashboard
     end
 
     def render_feedback_content
-      p(class: "text-sm font-medium truncate") do
+      a(href: feedback_link, class: "link link-hover block text-sm font-medium truncate") do
         plain "#{@item.feedback_template.name} — #{@item.csr_name || 'Unknown CSR'}"
       end
       p(class: "text-xs text-base-content/60 truncate") do
@@ -46,14 +46,14 @@ module Dashboard
     end
 
     def render_article_content
-      p(class: "text-sm font-medium truncate") { @item.title }
+      a(href: article_path(@item), class: "link link-hover block text-sm font-medium truncate") { @item.title }
       p(class: "text-xs text-base-content/60 truncate") do
         plain "by #{@item.author.name}"
       end
     end
 
     def render_update_content
-      p(class: "text-sm font-medium truncate") do
+      a(href: updates_path, class: "link link-hover block text-sm font-medium truncate") do
         plain "Standup Update — #{@item.date.strftime('%b %d, %Y')}"
       end
       p(class: "text-xs text-base-content/60 truncate") do
@@ -63,6 +63,10 @@ module Dashboard
           Badge(:primary, :xs) { "Pinned" }
         end
       end
+    end
+
+    def feedback_link
+      @item.ticket_number.present? ? feedback_index_path(q: @item.ticket_number) : feedback_index_path
     end
 
     def render_time
