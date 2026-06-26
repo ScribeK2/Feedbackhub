@@ -164,11 +164,11 @@ module Feedback
     end
 
     def render_empty_state
-      div(class: "text-center py-12") do
-        p(class: "text-base-content/60 text-lg") { "No feedback submissions found." }
-        Button(:primary, as: :a, href: new_feedback_path, class: "mt-4") do
-          plain "Submit First Feedback"
-        end
+      render Shared::EmptyStateComponent.new(
+        title: "No feedback submissions found",
+        description: "Try adjusting your filters, or submit the first one."
+      ) do
+        Button(:primary, as: :a, href: new_feedback_path) { "Submit First Feedback" }
       end
     end
 

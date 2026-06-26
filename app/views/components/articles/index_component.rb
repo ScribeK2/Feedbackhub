@@ -35,12 +35,11 @@ module Articles
     end
 
     def render_empty_state
-      div(class: "text-center py-12") do
-        p(class: "text-base-content/60 text-lg") { "No articles yet." }
-        Button(:primary, as: :a, href: new_article_path, class: "mt-4") do
-          plain "Create First Article"
-        end
-      end
+      render Shared::EmptyStateComponent.new(
+        title: "No articles yet",
+        description: "Knowledge base articles will show up here.",
+        icon: :document
+      )
     end
   end
 end

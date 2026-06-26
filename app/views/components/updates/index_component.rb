@@ -48,9 +48,11 @@ module Updates
 
     def render_archived_section
       if @archived.empty? && @pinned.empty?
-        div(class: "text-center py-12") do
-          p(class: "text-base-content/60 text-lg") { "No updates yet." }
-        end
+        render Shared::EmptyStateComponent.new(
+          title: "No updates yet",
+          description: "Product updates will be posted here.",
+          icon: :megaphone
+        )
       elsif @archived.any?
         div(class: "space-y-4") do
           @archived.each do |update|
