@@ -158,7 +158,7 @@ module Feedback
       when "Low" then :success
       else :ghost
       end
-      Badge modifier, :sm do
+      Badge modifier, :sm, class: "badge-soft" do
         plain submission.priority || "—"
       end
     end

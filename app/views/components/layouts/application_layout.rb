@@ -65,7 +65,7 @@ module Layouts
           data: { search_target: "input", action: "input->search#submit" }
         )
         div(
-          class: "absolute top-full left-0 w-80 mt-1 bg-base-100 shadow-xl rounded-lg overflow-hidden z-50 hidden",
+          class: "absolute top-full left-0 w-80 mt-1 surface-overlay overflow-hidden z-50 hidden",
           data: { search_target: "results" }
         )
       end

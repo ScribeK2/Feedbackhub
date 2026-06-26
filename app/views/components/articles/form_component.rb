@@ -72,7 +72,7 @@ module Articles
               }
             )
             div(
-              class: "absolute z-10 w-full mt-1 bg-base-100 shadow-lg rounded-lg hidden",
+              class: "absolute z-10 w-full mt-1 surface-overlay hidden",
               data: { tag_input_target: "suggestions" }
             )
           end
