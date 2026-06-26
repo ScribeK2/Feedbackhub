@@ -21,7 +21,7 @@ module Articles
           a(href: articles_path, class: "link link-hover text-sm text-base-content/60 mb-2 inline-block") do
             plain "Back to Knowledge Base"
           end
-          h1(class: "text-3xl font-bold") { @article.title }
+          h1(class: "page-title") { @article.title }
           p(class: "text-base-content/60 mt-1") do
             plain "by #{@article.author.name} — #{time_ago_in_words(@article.created_at)} ago"
           end

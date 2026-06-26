@@ -21,7 +21,7 @@ module Updates
 
     def render_header
       div(class: "flex justify-between items-center") do
-        h1(class: "text-3xl font-bold") { "Updates" }
+        h1(class: "page-title") { "Updates" }
         Button :primary, data: { action: "click->modal#open", modal_id_param: "new-update-modal" } do
           "Add New Update"
         end

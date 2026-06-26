@@ -8,7 +8,7 @@ module Articles
 
     def view_template
       div(class: "max-w-3xl mx-auto") do
-        h1(class: "text-3xl font-bold mb-6") do
+        h1(class: "page-title mb-6") do
           plain @article.new_record? ? "New Article" : "Edit Article"
         end
 

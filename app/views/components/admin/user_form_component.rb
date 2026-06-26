@@ -8,7 +8,7 @@ module Admin
 
     def view_template
       div(class: "max-w-lg mx-auto") do
-        h1(class: "text-3xl font-bold mb-6") do
+        h1(class: "page-title mb-6") do
           plain @user.new_record? ? "New User" : "Edit User"
         end
 

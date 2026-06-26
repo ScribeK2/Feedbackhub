@@ -25,7 +25,7 @@ module Feedback
 
     def render_header
       div(class: "flex justify-between items-center") do
-        h1(class: "text-3xl font-bold") { "Feedbacks" }
+        h1(class: "page-title") { "Feedbacks" }
         Button(:primary, as: :a, href: new_feedback_path) { "Submit Feedback" }
       end
     end

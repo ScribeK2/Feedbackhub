@@ -17,7 +17,7 @@ module Admin
 
     def render_header
       div(class: "flex justify-between items-center") do
-        h1(class: "text-3xl font-bold") { "Manage Users" }
+        h1(class: "page-title") { "Manage Users" }
         Button(:primary, as: :a, href: new_admin_user_path) { "New User" }
       end
     end

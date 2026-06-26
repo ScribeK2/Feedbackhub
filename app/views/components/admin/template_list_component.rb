@@ -17,7 +17,7 @@ module Admin
 
     def render_header
       div(class: "flex justify-between items-center") do
-        h1(class: "text-3xl font-bold") { "Feedback Templates" }
+        h1(class: "page-title") { "Feedback Templates" }
         Button(:primary, as: :a, href: new_admin_template_path) { "New Template" }
       end
     end

@@ -8,7 +8,7 @@ module Tools
 
     def view_template
       div(class: "space-y-6") do
-        h1(class: "text-3xl font-bold") { "Tools" }
+        h1(class: "page-title") { "Tools" }
         if @tools.empty?
           p(class: "text-base-content/60 text-center py-12") { "No tools configured. Edit config/tools.yml to add tools." }
         else

@@ -21,7 +21,7 @@ module Articles
 
     def render_header
       div(class: "flex justify-between items-center") do
-        h1(class: "text-3xl font-bold") { "Knowledge Base" }
+        h1(class: "page-title") { "Knowledge Base" }
         Button(:primary, as: :a, href: new_article_path) { "New Article" }
       end
     end
