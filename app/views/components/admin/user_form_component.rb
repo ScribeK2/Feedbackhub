@@ -50,7 +50,7 @@ module Admin
         div(class: "form-control") do
           label(class: "label") { span(class: "label-text") { "Role" } }
           select(name: "user[role]", class: "select select-bordered w-full") do
-            %w[user admin].each do |role|
+            %w[user admin manager].each do |role|
               if @user.role == role
                 option(value: role, selected: true) { role.capitalize }
               else

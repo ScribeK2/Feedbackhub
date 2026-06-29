@@ -24,6 +24,10 @@ module AuthenticationHelper
   def sign_in_as_user
     sign_in(users(:regular))
   end
+
+  def sign_in_as_manager
+    sign_in(users(:manager))
+  end
 end
 
 class ActionDispatch::IntegrationTest

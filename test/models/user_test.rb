@@ -72,4 +72,18 @@ class UserTest < ActiveSupport::TestCase
     user = users(:admin)
     assert_not user.authenticate("wrongpassword")
   end
+
+  test "accepts manager role" do
+    user = User.new(email: "m@test.com", name: "Mgr", password: "password", role: "manager")
+    assert user.valid?
+  end
+
+  test "manager? returns true for manager role" do
+    assert users(:manager).manager?
+  end
+
+  test "manager? returns false for non-manager roles" do
+    assert_not users(:admin).manager?
+    assert_not users(:regular).manager?
+  end
 end
