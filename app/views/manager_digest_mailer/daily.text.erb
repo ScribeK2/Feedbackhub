@@ -1,0 +1,7 @@
+Daily feedback digest
+
+Hi <%= @manager.name %>, here is new feedback for your team since your last digest:
+
+<% @submissions.each do |s| -%>
+- <%= s.csr_name %> — <%= s.priority || "—" %> / <%= s.feedback_type || "—" %> (ticket <%= s.ticket_number || "—" %>, by <%= s.submitted_by || "—" %>) on <%= s.created_at.strftime("%b %d, %Y %H:%M") %>
+<% end -%>
