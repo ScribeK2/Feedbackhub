@@ -13,7 +13,7 @@ module Dashboard
     end
 
     def view_template
-      turbo_stream_from "dashboard"
+      turbo_stream_from(current_user&.stream_for("dashboard") || "dashboard")
 
       div(class: "space-y-8") do
         render_header

@@ -27,17 +27,23 @@ class FeedbackSubmission < ApplicationRecord
   private
 
   def broadcast_updates
-    broadcast_prepend_to "feedback_submissions",
-      target: "submissions",
-      html: ApplicationController.render(Feedback::CardComponent.new(submission: self))
+    card = ApplicationController.render(Feedback::CardComponent.new(submission: self))
+    activity = ApplicationController.render(Dashboard::ActivityItemComponent.new(item: self, type: :feedback))
 
-    broadcast_replace_to "dashboard",
-      target: "metric_cards",
+    # Global channels: admins, regular users, empty-team managers.
+    broadcast_prepend_to "feedback_submissions", target: "submissions", html: card
+    broadcast_replace_to "dashboard", target: "metric_cards",
       html: ApplicationController.render(Dashboard::MetricCardsFragment.new)
+    broadcast_prepend_to "dashboard", target: "recent_activity", html: activity
 
-    broadcast_prepend_to "dashboard",
-      target: "recent_activity",
-      html: ApplicationController.render(Dashboard::ActivityItemComponent.new(item: self, type: :feedback))
+    # Per-manager channels: only managers whose team includes this CSR.
+    User.managers_for(csr_name).each do |manager|
+      scope = FeedbackSubmission.for_csrs(manager.team_csr_names)
+      broadcast_prepend_to "feedback_submissions:#{manager.id}", target: "submissions", html: card
+      broadcast_replace_to "dashboard:#{manager.id}", target: "metric_cards",
+        html: ApplicationController.render(Dashboard::MetricCardsFragment.new(scope: scope))
+      broadcast_prepend_to "dashboard:#{manager.id}", target: "recent_activity", html: activity
+    end
   end
 
   def extract_grouping_fields
