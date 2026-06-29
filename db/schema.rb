@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_27_021933) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_29_120001) do
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.text "body"
     t.datetime "created_at", null: false
@@ -100,6 +100,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_021933) do
     t.index ["name"], name: "index_tags_on_name", unique: true
   end
 
+  create_table "team_memberships", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "csr_name", null: false
+    t.integer "manager_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["manager_id", "csr_name"], name: "index_team_memberships_on_manager_id_and_csr_name", unique: true
+    t.index ["manager_id"], name: "index_team_memberships_on_manager_id"
+  end
+
   create_table "updates", force: :cascade do |t|
     t.integer "author_id", null: false
     t.datetime "created_at", null: false
@@ -112,6 +121,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_021933) do
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email", null: false
+    t.datetime "last_digest_sent_at"
     t.string "name", null: false
     t.string "password_digest", null: false
     t.string "role", default: "user", null: false
@@ -125,5 +135,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_27_021933) do
   add_foreign_key "article_tags", "tags"
   add_foreign_key "articles", "users", column: "author_id"
   add_foreign_key "feedback_submissions", "feedback_templates"
+  add_foreign_key "team_memberships", "users", column: "manager_id"
   add_foreign_key "updates", "users", column: "author_id"
 end

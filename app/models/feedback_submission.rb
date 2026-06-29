@@ -10,6 +10,11 @@ class FeedbackSubmission < ApplicationRecord
   scope :high_priority, -> { where(priority: "High") }
   scope :medium_priority, -> { where(priority: "Medium") }
   scope :low_priority, -> { where(priority: "Low") }
+  scope :for_csrs, ->(names) {
+    names = Array(names).map { |n| n.to_s.downcase }.reject(&:blank?)
+    next none if names.empty?
+    where("LOWER(csr_name) IN (?)", names)
+  }
   scope :search, ->(q) {
     where(
       "csr_name LIKE :q OR submitted_by LIKE :q OR ticket_number LIKE :q OR feedback_type LIKE :q OR data LIKE :q",
