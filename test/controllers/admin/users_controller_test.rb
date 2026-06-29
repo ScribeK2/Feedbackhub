@@ -12,6 +12,14 @@ class Admin::UsersControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "index renders each role label distinctly" do
+    get admin_users_path
+    assert_response :success
+    assert_select "td", text: "Admin"
+    assert_select "td", text: "Manager"
+    assert_select "td", text: "User"
+  end
+
   test "new renders user form" do
     get new_admin_user_path
     assert_response :success

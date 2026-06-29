@@ -41,17 +41,20 @@ module Admin
       end
     end
 
+    def render_role_badge(user)
+      modifier = case user.role
+      when "admin" then :primary
+      when "manager" then :secondary
+      else :ghost
+      end
+      Badge(modifier, :sm) { user.role.capitalize }
+    end
+
     def render_user_row(user)
       tr do
         td(class: "font-medium") { user.name }
         td { user.email }
-        td do
-          if user.admin?
-            Badge(:primary, :sm) { "Admin" }
-          else
-            Badge(:ghost, :sm) { "User" }
-          end
-        end
+        td { render_role_badge(user) }
         td(class: "text-sm text-base-content/60") { time_ago_in_words(user.created_at) + " ago" }
         td(class: "flex gap-1") do
           a(href: edit_admin_user_path(user), class: "btn btn-ghost btn-xs") { "Edit" }
