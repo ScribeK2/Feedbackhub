@@ -28,4 +28,10 @@ class ApplicationController < ActionController::Base
       redirect_to root_path, alert: "Admin access required."
     end
   end
+
+  def require_manager
+    unless current_user&.manager?
+      redirect_to root_path, alert: "Manager access required."
+    end
+  end
 end

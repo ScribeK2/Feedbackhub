@@ -18,6 +18,9 @@ Rails.application.routes.draw do
   resources :tools, only: [ :index ]
   get "search", to: "search#index"
 
+  get "team", to: "team_memberships#index"
+  resources :team_memberships, only: [ :create, :destroy ]
+
   namespace :admin do
     resources :templates
     resources :users
