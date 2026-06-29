@@ -105,14 +105,19 @@ class FeedbackControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "manager with a team sees only team feedback" do
+    FeedbackSubmission.create!(
+      feedback_template: feedback_templates(:csr_feedback),
+      data: { csr: "Off Team Person", priority: "High" }
+    )
     sign_in_as_manager
     get feedback_index_path
     assert_response :success
     assert_select "td a.link-primary", text: "Jane Doe", minimum: 1
+    assert_select "a.link-primary", text: "Off Team Person", count: 0
   end
 
   test "manager cannot widen scope with csr param" do
-    off = FeedbackSubmission.create!(
+    FeedbackSubmission.create!(
       feedback_template: feedback_templates(:csr_feedback),
       data: { csr: "Off Team", priority: "High" }
     )
