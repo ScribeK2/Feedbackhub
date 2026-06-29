@@ -1,22 +1,29 @@
 class HubController < ApplicationController
   def index
-    @high_count = FeedbackSubmission.high_priority.count
-    @medium_count = FeedbackSubmission.medium_priority.count
-    @low_count = FeedbackSubmission.low_priority.count
-    @total_count = FeedbackSubmission.count
+    scope = team_scoped(FeedbackSubmission.all)
 
     render Dashboard::IndexComponent.new(
-      high_count: @high_count,
-      medium_count: @medium_count,
-      low_count: @low_count,
-      total_count: @total_count,
-      recent_activity: recent_activity
+      high_count: scope.high_priority.count,
+      medium_count: scope.medium_priority.count,
+      low_count: scope.low_priority.count,
+      total_count: scope.count,
+      recent_activity: recent_activity(scope)
     )
   end
 
   private
 
-  def recent_activity
+  def recent_activity(scope)
+    if current_user&.team_scoped?
+      scope.includes(:feedback_template).order(created_at: :desc).limit(20).map do |s|
+        { type: :feedback, record: s, created_at: s.created_at }
+      end
+    else
+      mixed_recent_activity
+    end
+  end
+
+  def mixed_recent_activity
     items = []
 
     FeedbackSubmission.includes(:feedback_template).order(created_at: :desc).limit(20).each do |s|

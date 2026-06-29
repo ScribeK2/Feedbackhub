@@ -1,6 +1,6 @@
 class FeedbackController < ApplicationController
   def index
-    @submissions = FeedbackSubmission.includes(:feedback_template).order(created_at: :desc)
+    @submissions = team_scoped(FeedbackSubmission.includes(:feedback_template)).order(created_at: :desc)
     @submissions = @submissions.where(csr_name: params[:csr]) if params[:csr].present?
     @submissions = @submissions.where(submitted_by: params[:submitted_by]) if params[:submitted_by].present?
     @submissions = @submissions.search(params[:q]) if params[:q].present?

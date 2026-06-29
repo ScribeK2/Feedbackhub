@@ -34,4 +34,12 @@ class ApplicationController < ActionController::Base
       redirect_to root_path, alert: "Manager access required."
     end
   end
+
+  def team_scoped(relation)
+    if current_user&.team_scoped?
+      relation.for_csrs(current_user.team_csr_names)
+    else
+      relation
+    end
+  end
 end
