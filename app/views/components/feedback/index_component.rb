@@ -11,7 +11,7 @@ module Feedback
     end
 
     def view_template
-      turbo_stream_from "feedback_submissions"
+      turbo_stream_from(current_user&.stream_for("feedback_submissions") || "feedback_submissions")
 
       div(class: "space-y-6", data: { controller: "modal" }) do
         render_header

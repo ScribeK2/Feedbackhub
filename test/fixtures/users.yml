@@ -9,3 +9,9 @@ regular:
   name: "Regular User"
   password_digest: <%= BCrypt::Password.create("password") %>
   role: "user"
+
+manager:
+  email: "manager@test.com"
+  name: "Manager User"
+  password_digest: <%= BCrypt::Password.create("password") %>
+  role: "manager"

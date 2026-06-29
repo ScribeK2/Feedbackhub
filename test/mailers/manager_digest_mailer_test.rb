@@ -1,0 +1,18 @@
+# frozen_string_literal: true
+
+require "test_helper"
+
+class ManagerDigestMailerTest < ActionMailer::TestCase
+  test "daily addresses the manager and lists submissions" do
+    manager = users(:manager)
+    submissions = FeedbackSubmission.for_csrs(manager.team_csr_names)
+    email = ManagerDigestMailer.daily(manager, submissions)
+
+    assert_equal [manager.email], email.to
+    assert_match "Jane Doe", email.body.encoded
+    assert_match "TK-001", email.body.encoded
+    assert_match "TK-002", email.body.encoded
+    assert_match "High", email.body.encoded
+    assert_match "Low", email.body.encoded
+  end
+end

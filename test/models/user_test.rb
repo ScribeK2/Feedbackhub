@@ -72,4 +72,42 @@ class UserTest < ActiveSupport::TestCase
     user = users(:admin)
     assert_not user.authenticate("wrongpassword")
   end
+
+  test "accepts manager role" do
+    user = User.new(email: "m@test.com", name: "Mgr", password: "password", role: "manager")
+    assert user.valid?
+  end
+
+  test "manager? returns true for manager role" do
+    assert users(:manager).manager?
+  end
+
+  test "manager? returns false for non-manager roles" do
+    assert_not users(:admin).manager?
+    assert_not users(:regular).manager?
+  end
+
+  test "team_csr_names lists the manager's CSR names" do
+    assert_equal ["Jane Doe"], users(:manager).team_csr_names
+  end
+
+  test "team_scoped? true for manager with memberships" do
+    assert users(:manager).team_scoped?
+  end
+
+  test "team_scoped? false for admin and empty-team manager" do
+    assert_not users(:admin).team_scoped?
+    empty = User.create!(email: "empty@test.com", name: "Empty", password: "password", role: "manager")
+    assert_not empty.team_scoped?
+  end
+
+  test "stream_for namespaces the channel for scoped managers" do
+    assert_equal "dashboard:#{users(:manager).id}", users(:manager).stream_for("dashboard")
+    assert_equal "dashboard", users(:admin).stream_for("dashboard")
+  end
+
+  test "managers_for returns managers whose team includes the csr name (case-insensitive)" do
+    assert_includes User.managers_for("jane doe"), users(:manager)
+    assert_empty User.managers_for("Nobody")
+  end
 end

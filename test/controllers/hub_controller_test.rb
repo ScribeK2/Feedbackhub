@@ -50,4 +50,25 @@ class HubControllerTest < ActionDispatch::IntegrationTest
     get hub_path
     assert_select "#recent_activity a.link"
   end
+
+  test "manager dashboard counts are team-scoped" do
+    FeedbackSubmission.create!(
+      feedback_template: feedback_templates(:csr_feedback),
+      data: { csr: "Off Team Person", priority: "High" }
+    )
+    sign_in_as_manager
+    get hub_path
+    assert_response :success
+    # Team (Jane Doe): High=1, Medium=0, Low=1, Total=2.
+    # Off Team Person's High submission must NOT push High to 2 or Total to 3.
+    assert_select "#metric_cards .badge-error", text: "1"   # High Priority = 1, not 2
+    assert_select "#metric_cards .badge-info",  text: "2"   # Total Feedbacks = 2, not 3
+  end
+
+  test "manager recent activity is feedback-only" do
+    sign_in_as_manager
+    get hub_path
+    assert_response :success
+    assert_select ".badge", text: "Article", count: 0
+  end
 end
