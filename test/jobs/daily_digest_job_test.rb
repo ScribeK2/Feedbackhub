@@ -26,6 +26,7 @@ class DailyDigestJobTest < ActiveJob::TestCase
   end
 
   test "skips an empty-team manager (never a firehose)" do
+    users(:manager).update!(last_digest_sent_at: Time.current)
     empty = User.create!(email: "empty2@test.com", name: "Empty", password: "password", role: "manager")
     assert_no_emails do
       DailyDigestJob.perform_now

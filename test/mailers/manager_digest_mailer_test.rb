@@ -10,5 +10,9 @@ class ManagerDigestMailerTest < ActionMailer::TestCase
 
     assert_equal [manager.email], email.to
     assert_match "Jane Doe", email.body.encoded
+    assert_match "TK-001", email.body.encoded
+    assert_match "TK-002", email.body.encoded
+    assert_match "High", email.body.encoded
+    assert_match "Low", email.body.encoded
   end
 end
