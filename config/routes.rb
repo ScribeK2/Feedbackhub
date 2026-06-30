@@ -21,6 +21,9 @@ Rails.application.routes.draw do
   get "team", to: "team_memberships#index"
   resources :team_memberships, only: [ :create, :destroy ]
 
+  get "scorecards", to: "scorecards#index"
+  get "scorecards/show", to: "scorecards#show", as: :scorecard
+
   namespace :admin do
     resources :templates
     resources :users
