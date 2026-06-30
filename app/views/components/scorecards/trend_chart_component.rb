@@ -1,12 +1,10 @@
 # frozen_string_literal: true
 
 module Scorecards
-  # Inline-SVG bar chart of issue counts per time bucket. No JS.
+  # CSS bar chart of issue counts per time bucket. No JS, no SVG — bars are
+  # plain divs sized with an inline height percentage so they scale with the
+  # container and never depend on purgeable utility classes for their height.
   class TrendChartComponent < ApplicationComponent
-    BAR_WIDTH = 24
-    BAR_GAP = 8
-    CHART_HEIGHT = 80
-
     def initialize(buckets:)
       @buckets = buckets
     end
@@ -23,18 +21,22 @@ module Scorecards
     private
 
     def render_chart(max)
-      width = @buckets.size * (BAR_WIDTH + BAR_GAP)
-      svg(viewBox: "0 0 #{width} #{CHART_HEIGHT + 20}", class: "w-full h-28 text-primary", role: "img") do |s|
-        @buckets.each_with_index do |bucket, i|
-          height = (bucket[:count].to_f / max * CHART_HEIGHT).round
-          x = i * (BAR_WIDTH + BAR_GAP)
-          s.rect(x: x, y: CHART_HEIGHT - height, width: BAR_WIDTH, height: height, rx: 2, fill: "currentColor")
-          s.text(
-            x: x + BAR_WIDTH / 2, y: CHART_HEIGHT + 14,
-            "text-anchor": "middle", fill: "currentColor",
-            class: "text-[8px] opacity-60"
-          ) { bucket[:label] }
+      div(class: "flex items-stretch gap-2") do
+        @buckets.each { |bucket| render_bucket(bucket, max) }
+      end
+    end
+
+    def render_bucket(bucket, max)
+      pct = (bucket[:count].to_f / max * 100).round
+      div(class: "flex flex-1 flex-col items-center") do
+        div(class: "flex h-24 w-full items-end justify-center") do
+          div(
+            class: "w-8 max-w-full rounded-t bg-primary",
+            style: "height: #{pct}%",
+            title: "#{bucket[:label]}: #{bucket[:count]}"
+          )
         end
+        span(class: "mt-1 text-xs opacity-60 whitespace-nowrap") { bucket[:label] }
       end
     end
   end
