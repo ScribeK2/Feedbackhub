@@ -56,4 +56,26 @@ class ScorecardsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Issue volume"
   end
+
+  test "viewing a CSR with no feedback at all shows the no-data state" do
+    sign_in_as_admin
+    get scorecard_path(csr: "Ghost CSR")
+    assert_response :success
+    assert_includes response.body, "No feedback on record"
+  end
+
+  test "viewing a CSR whose only issues fall outside the range shows the zero-in-period good state" do
+    FeedbackSubmission.create!(
+      feedback_template: feedback_templates(:csr_feedback),
+      created_at: 200.days.ago, updated_at: 200.days.ago,
+      data: {
+        "ticket_number" => "TK-OLD", "csr" => "Stale CSR", "feedback_type" => "Knowledge Gap",
+        "impact" => "Resolution Time", "priority" => "Low", "submitted_by" => "Tester"
+      }
+    )
+    sign_in_as_admin
+    get scorecard_path(csr: "Stale CSR")
+    assert_response :success
+    assert_includes response.body, "No issues logged"
+  end
 end

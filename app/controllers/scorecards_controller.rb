@@ -50,6 +50,7 @@ class ScorecardsController < ApplicationController
     start_date = parse_date(params[:start])
     end_date = parse_date(params[:end])
     return ScorecardReport.default_range unless start_date && end_date
+    return ScorecardReport.default_range if start_date > end_date
 
     start_date.beginning_of_day..end_date.end_of_day
   end

@@ -22,7 +22,7 @@ class ScorecardReport
   end
 
   def total_count
-    current_submissions.size
+    @total_count ||= base.where(created_at: date_range).count
   end
 
   def previous_count
