@@ -1,9 +1,9 @@
 ---
 name: csr-scorecards
 description: Per-CSR performance scorecards for managers — issue trends and breakdowns for 1-on-1s
-status: draft
+status: complete
 created: 2026-06-30T13:11:19Z
-updated: 2026-06-30T13:11:19Z
+updated: 2026-06-30T14:04:48Z
 ---
 
 # CSR Scorecards
