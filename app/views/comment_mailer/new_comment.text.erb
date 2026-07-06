@@ -1,0 +1,11 @@
+New comment on feedback<%= " for #{@submission.csr_name}" if @submission.csr_name.present? %>
+
+Hi <%= @recipient.name %>, <%= @comment.author.name %> commented on a feedback submission you follow:
+
+<%= @comment.body %>
+
+<%= @submission.feedback_template.name %><%= " (ticket #{@submission.ticket_number})" if @submission.ticket_number.present? %>
+View the feedback: <%= feedback_url(@submission) %>
+
+Unsubscribe from this feedback under Settings -> Subscriptions:
+<%= settings_subscriptions_url %>

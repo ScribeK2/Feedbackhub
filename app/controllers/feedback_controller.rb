@@ -25,6 +25,7 @@ class FeedbackController < ApplicationController
     @template = FeedbackTemplate.find(params[:feedback_template_id])
     @submission = FeedbackSubmission.new(
       feedback_template: @template,
+      submitter: current_user,
       data: submission_data(@template)
     )
 
@@ -54,7 +55,7 @@ class FeedbackController < ApplicationController
 
   def show
     @submission = FeedbackSubmission.find(params[:id])
-    render Hub::SubmissionModalComponent.new(submission: @submission)
+    render Hub::SubmissionModalComponent.new(submission: @submission, open: true)
   end
 
   def form

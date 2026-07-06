@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_29_120001) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_06_114503) do
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.text "body"
     t.datetime "created_at", null: false
@@ -67,6 +67,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_29_120001) do
     t.index ["author_id"], name: "index_articles_on_author_id"
   end
 
+  create_table "comments", force: :cascade do |t|
+    t.integer "author_id", null: false
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.integer "feedback_submission_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["author_id"], name: "index_comments_on_author_id"
+    t.index ["feedback_submission_id"], name: "index_comments_on_feedback_submission_id"
+  end
+
   create_table "feedback_submissions", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "csr_name"
@@ -75,6 +85,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_29_120001) do
     t.string "feedback_type"
     t.string "priority"
     t.string "submitted_by"
+    t.integer "submitter_id"
     t.string "ticket_number"
     t.datetime "updated_at", null: false
     t.index ["csr_name"], name: "index_feedback_submissions_on_csr_name"
@@ -82,7 +93,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_29_120001) do
     t.index ["feedback_type"], name: "index_feedback_submissions_on_feedback_type"
     t.index ["priority"], name: "index_feedback_submissions_on_priority"
     t.index ["submitted_by"], name: "index_feedback_submissions_on_submitted_by"
+    t.index ["submitter_id"], name: "index_feedback_submissions_on_submitter_id"
     t.index ["ticket_number"], name: "index_feedback_submissions_on_ticket_number"
+  end
+
+  create_table "feedback_subscriptions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "feedback_submission_id", null: false
+    t.boolean "subscribed", default: true, null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["feedback_submission_id", "user_id"], name: "idx_on_feedback_submission_id_user_id_68c80a419d", unique: true
+    t.index ["feedback_submission_id"], name: "index_feedback_subscriptions_on_feedback_submission_id"
+    t.index ["user_id"], name: "index_feedback_subscriptions_on_user_id"
   end
 
   create_table "feedback_templates", force: :cascade do |t|
@@ -91,6 +114,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_29_120001) do
     t.string "name", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_feedback_templates_on_name", unique: true
+  end
+
+  create_table "notifications", force: :cascade do |t|
+    t.integer "comment_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "read_at"
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["comment_id"], name: "index_notifications_on_comment_id"
+    t.index ["user_id", "comment_id"], name: "index_notifications_on_user_id_and_comment_id", unique: true
+    t.index ["user_id", "read_at"], name: "index_notifications_on_user_id_and_read_at"
+    t.index ["user_id"], name: "index_notifications_on_user_id"
   end
 
   create_table "tags", force: :cascade do |t|
@@ -134,7 +169,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_29_120001) do
   add_foreign_key "article_tags", "articles"
   add_foreign_key "article_tags", "tags"
   add_foreign_key "articles", "users", column: "author_id"
+  add_foreign_key "comments", "feedback_submissions"
+  add_foreign_key "comments", "users", column: "author_id"
   add_foreign_key "feedback_submissions", "feedback_templates"
+  add_foreign_key "feedback_submissions", "users", column: "submitter_id"
+  add_foreign_key "feedback_subscriptions", "feedback_submissions"
+  add_foreign_key "feedback_subscriptions", "users"
+  add_foreign_key "notifications", "comments"
+  add_foreign_key "notifications", "users"
   add_foreign_key "team_memberships", "users", column: "manager_id"
   add_foreign_key "updates", "users", column: "author_id"
 end
