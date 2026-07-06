@@ -2,17 +2,20 @@
 
 module Hub
   class SubmissionModalComponent < ApplicationComponent
-    def initialize(submission:)
+    def initialize(submission:, open: false)
       @submission = submission
+      @open = open
     end
 
     def view_template
       Modal :tap_outside_to_close,
         id: "submission-#{@submission.id}",
+        open: @open,
         data: { modal_target: "dialog" } do |modal|
         modal.body class: "max-w-2xl surface-overlay" do
           render_header
           render_content
+          render_comments
           render_footer(modal)
         end
       end
@@ -64,6 +67,16 @@ module Hub
         end
       else
         span(class: "text-base-content/50 italic") { "No details provided" }
+      end
+    end
+
+    def render_comments
+      div(class: "mt-6 border-t border-base-300 pt-4") do
+        turbo_frame_tag "comments_submission_#{@submission.id}",
+          src: feedback_comments_path(@submission),
+          loading: :lazy do
+          span(class: "loading loading-dots loading-sm")
+        end
       end
     end
 

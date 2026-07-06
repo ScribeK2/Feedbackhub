@@ -1,0 +1,14 @@
+<h1>New comment on feedback<%= " for #{@submission.csr_name}" if @submission.csr_name.present? %></h1>
+<p>Hi <%= @recipient.name %>, <%= @comment.author.name %> commented on a feedback submission you follow:</p>
+<blockquote style="border-left: 3px solid #ccc; margin: 12px 0; padding: 4px 12px;">
+  <%= simple_format(@comment.body) %>
+</blockquote>
+<p>
+  <strong><%= @submission.feedback_template.name %></strong>
+  <% if @submission.ticket_number.present? %>(ticket <%= @submission.ticket_number %>)<% end %>
+  — <%= link_to "View the feedback", feedback_url(@submission) %>
+</p>
+<p style="color: #888; font-size: 12px;">
+  You can unsubscribe from this feedback under Settings &rarr; Subscriptions in FeedbackHub:
+  <%= link_to "Manage subscriptions", settings_subscriptions_url %>
+</p>

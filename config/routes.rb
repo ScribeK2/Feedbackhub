@@ -10,7 +10,17 @@ Rails.application.routes.draw do
     collection do
       get :form
     end
+    resources :comments, only: [ :index, :create ]
+    resource :subscription, only: [ :update ]
   end
+
+  resources :notifications, only: [ :index, :show ] do
+    collection do
+      post :mark_all_read
+    end
+  end
+
+  get "settings/subscriptions", to: "settings#subscriptions", as: :settings_subscriptions
 
   resources :articles, only: [ :index, :show, :new, :create, :destroy ]
   resources :updates, only: [ :index, :create, :update, :destroy ]

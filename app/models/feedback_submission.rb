@@ -1,10 +1,14 @@
 class FeedbackSubmission < ApplicationRecord
   belongs_to :feedback_template
+  belongs_to :submitter, class_name: "User", optional: true
+  has_many :comments, dependent: :destroy
+  has_many :feedback_subscriptions, dependent: :destroy
   has_rich_text :feedback_details
 
   validates :data, presence: true
 
   before_save :extract_grouping_fields
+  after_create :subscribe_submitter
 
   scope :by_priority, ->(p) { where(priority: p) }
   scope :high_priority, -> { where(priority: "High") }
@@ -24,7 +28,29 @@ class FeedbackSubmission < ApplicationRecord
 
   after_create_commit :broadcast_updates
 
+  # Users notified about new comments: explicit subscribers plus managers whose
+  # team includes this CSR, minus explicit opt-outs and the comment author.
+  def notification_recipients(except: nil)
+    ids = feedback_subscriptions.subscribed.pluck(:user_id) |
+      User.managers_for(csr_name).pluck(:id)
+    ids -= feedback_subscriptions.unsubscribed.pluck(:user_id)
+    ids -= [ except.id ] if except
+    User.where(id: ids)
+  end
+
+  # Whether a user currently receives comment notifications for this feedback.
+  def subscribed?(user)
+    subscription = feedback_subscriptions.find_by(user: user)
+    return subscription.subscribed if subscription
+
+    User.managers_for(csr_name).exists?(id: user.id)
+  end
+
   private
+
+  def subscribe_submitter
+    feedback_subscriptions.create!(user: submitter) if submitter
+  end
 
   def broadcast_updates
     card = ApplicationController.render(Feedback::CardComponent.new(submission: self))

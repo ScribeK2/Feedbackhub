@@ -7,6 +7,7 @@ module Layouts
     include Phlex::Rails::Helpers::JavaScriptImportmapTags
     include Phlex::Rails::Helpers::CSPMetaTag
     include Phlex::Rails::Helpers::CSRFMetaTags
+    include Phlex::Rails::Helpers::TurboStreamFrom
 
     def initialize(title: "FeedbackHub")
       @title = title
@@ -49,6 +50,8 @@ module Layouts
             end
             div(class: "flex-1 flex items-center justify-end gap-2") do
               render Shared::ThemeToggleComponent.new
+              turbo_stream_from "notifications:#{current_user.id}"
+              render Shared::NotificationBellComponent.new(user: current_user)
               render_user_menu
             end
           end
@@ -157,6 +160,9 @@ module Layouts
             menu.item do
               span(class: "badge badge-sm badge-primary") { "Admin" }
             end
+          end
+          menu.item do
+            a(href: settings_subscriptions_path) { "Subscription Settings" }
           end
           menu.item do
             form(action: logout_path, method: "post") do

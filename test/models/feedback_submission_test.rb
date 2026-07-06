@@ -156,4 +156,47 @@ class FeedbackSubmissionTest < ActiveSupport::TestCase
     end
     assert_empty streams
   end
+
+  test "creating a submission subscribes the submitter" do
+    submission = FeedbackSubmission.create!(
+      feedback_template: feedback_templates(:csr_feedback),
+      submitter: users(:regular),
+      data: { csr: "Jane Doe", priority: "High" }
+    )
+    subscription = submission.feedback_subscriptions.find_by(user: users(:regular))
+    assert subscription&.subscribed
+  end
+
+  test "notification_recipients includes explicit subscribers and team managers" do
+    submission = feedback_submissions(:high_priority) # Jane Doe -> users(:manager)
+    submission.feedback_subscriptions.create!(user: users(:regular))
+
+    recipients = submission.notification_recipients
+    assert_includes recipients, users(:regular)
+    assert_includes recipients, users(:manager)
+    assert_not_includes recipients, users(:admin)
+  end
+
+  test "notification_recipients excludes opted-out users and the excluded user" do
+    submission = feedback_submissions(:high_priority)
+    submission.feedback_subscriptions.create!(user: users(:regular))
+    submission.feedback_subscriptions.create!(user: users(:manager), subscribed: false)
+
+    recipients = submission.notification_recipients(except: users(:regular))
+    assert_not_includes recipients, users(:manager), "opted-out manager should be excluded"
+    assert_not_includes recipients, users(:regular), "excluded user should be excluded"
+  end
+
+  test "subscribed? reflects explicit rows and implicit manager interest" do
+    submission = feedback_submissions(:high_priority)
+
+    assert submission.subscribed?(users(:manager)), "team manager is implicitly subscribed"
+    assert_not submission.subscribed?(users(:regular)), "no row and not a manager"
+
+    submission.feedback_subscriptions.create!(user: users(:regular))
+    assert submission.subscribed?(users(:regular))
+
+    submission.feedback_subscriptions.create!(user: users(:manager), subscribed: false)
+    assert_not submission.subscribed?(users(:manager)), "explicit opt-out beats implicit interest"
+  end
 end
