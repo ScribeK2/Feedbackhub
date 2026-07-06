@@ -12,7 +12,7 @@ module Hub
         id: "submission-#{@submission.id}",
         open: @open,
         data: { modal_target: "dialog" } do |modal|
-        modal.body class: "max-w-2xl surface-overlay" do
+        modal.body class: "w-11/12 max-w-4xl max-h-[calc(100vh-6rem)] p-6 sm:p-8 surface-overlay" do
           render_header
           render_content
           render_comments
@@ -24,10 +24,10 @@ module Hub
     private
 
     def render_header
-      div(class: "flex justify-between items-start mb-4") do
+      div(class: "flex justify-between items-start gap-4 pb-5 mb-6 border-b border-base-300") do
         div do
-          h3(class: "font-bold text-xl") { @submission.feedback_template.name }
-          p(class: "text-sm text-base-content/60") do
+          h3(class: "font-bold text-2xl") { @submission.feedback_template.name }
+          p(class: "mt-1 text-sm text-base-content/60") do
             plain "Submitted #{time_ago_in_words(@submission.created_at)} ago"
           end
         end
@@ -38,25 +38,36 @@ module Hub
     end
 
     def render_content
-      div(class: "space-y-4") do
-        @submission.feedback_template.field_schema.each do |field|
-          field = field.with_indifferent_access
-          value = @submission.data[field[:name]]
-          next if value.blank? && field[:type] != "richtext"
+      meta_fields, richtext_fields = @submission.feedback_template.field_schema
+        .map(&:with_indifferent_access)
+        .partition { |field| field[:type] != "richtext" }
 
-          div(class: "border-b border-base-300 pb-3") do
-            dt(class: "text-sm font-semibold text-base-content/70 mb-1") do
+      render_meta_grid(meta_fields)
+      richtext_fields.each { |field| render_details_section(field) }
+    end
+
+    def render_meta_grid(fields)
+      dl(class: "grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-5") do
+        fields.each do |field|
+          value = @submission.data[field[:name]]
+          next if value.blank? || field[:name] == "priority"
+
+          div do
+            dt(class: "text-xs font-semibold uppercase tracking-wider text-base-content/50") do
               plain field[:label]
             end
-            dd(class: "text-base") do
-              if field[:type] == "richtext"
-                render_richtext_content
-              else
-                plain value.to_s
-              end
-            end
+            dd(class: "mt-1 text-base font-medium") { value.to_s }
           end
         end
+      end
+    end
+
+    def render_details_section(field)
+      div(class: "mt-6 pt-5 border-t border-base-300") do
+        p(class: "text-xs font-semibold uppercase tracking-wider text-base-content/50 mb-2") do
+          plain field[:label]
+        end
+        render_richtext_content
       end
     end
 
@@ -71,7 +82,7 @@ module Hub
     end
 
     def render_comments
-      div(class: "mt-6 border-t border-base-300 pt-4") do
+      div(class: "mt-8 border-t border-base-300 pt-5") do
         turbo_frame_tag "comments_submission_#{@submission.id}",
           src: feedback_comments_path(@submission),
           loading: :lazy do
