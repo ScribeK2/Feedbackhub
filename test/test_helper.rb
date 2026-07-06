@@ -1,6 +1,7 @@
 ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
+require "turbo/broadcastable/test_helper"
 
 module ActiveSupport
   class TestCase
@@ -9,6 +10,10 @@ module ActiveSupport
 
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
+
+    # turbo-rails only mixes this in once Action Cable happens to load, which is
+    # seed-dependent under parallel workers — include it deterministically.
+    include Turbo::Broadcastable::TestHelper
   end
 end
 
