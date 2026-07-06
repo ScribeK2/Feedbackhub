@@ -21,6 +21,6 @@ class Notification < ApplicationRecord
 
   def broadcast_bell
     broadcast_replace_to "notifications:#{user_id}", target: "notifications_bell",
-      html: ApplicationController.render(Shared::NotificationBellComponent.new(user: user))
+      html: ApplicationController.render(Shared::NotificationBellComponent.new(user: user), layout: false)
   end
 end

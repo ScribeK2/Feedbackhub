@@ -15,6 +15,6 @@ class Update < ApplicationRecord
   def broadcast_to_dashboard
     broadcast_prepend_to "dashboard",
       target: "recent_activity",
-      html: ApplicationController.render(Dashboard::ActivityItemComponent.new(item: self, type: :update))
+      html: ApplicationController.render(Dashboard::ActivityItemComponent.new(item: self, type: :update), layout: false)
   end
 end

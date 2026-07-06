@@ -157,6 +157,17 @@ class FeedbackSubmissionTest < ActiveSupport::TestCase
     assert_empty streams
   end
 
+  test "submission broadcast payloads are not wrapped in the application layout" do
+    streams = capture_turbo_stream_broadcasts("feedback_submissions") do
+      FeedbackSubmission.create!(
+        feedback_template: feedback_templates(:csr_feedback),
+        data: { csr: "Jane Doe", priority: "High" }
+      )
+    end
+    assert streams.any?, "expected a submission broadcast"
+    streams.each { |stream| assert_no_match(/<main/i, stream.to_html) }
+  end
+
   test "creating a submission subscribes the submitter" do
     submission = FeedbackSubmission.create!(
       feedback_template: feedback_templates(:csr_feedback),

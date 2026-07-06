@@ -30,6 +30,6 @@ class Comment < ApplicationRecord
   def broadcast_comment
     broadcast_append_to "feedback_submission_comments:#{feedback_submission_id}",
       target: "comments_list_#{feedback_submission_id}",
-      html: ApplicationController.render(Comments::CommentComponent.new(comment: self))
+      html: ApplicationController.render(Comments::CommentComponent.new(comment: self), layout: false)
   end
 end

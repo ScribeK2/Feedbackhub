@@ -53,13 +53,13 @@ class FeedbackSubmission < ApplicationRecord
   end
 
   def broadcast_updates
-    card = ApplicationController.render(Feedback::CardComponent.new(submission: self))
-    activity = ApplicationController.render(Dashboard::ActivityItemComponent.new(item: self, type: :feedback))
+    card = ApplicationController.render(Feedback::CardComponent.new(submission: self), layout: false)
+    activity = ApplicationController.render(Dashboard::ActivityItemComponent.new(item: self, type: :feedback), layout: false)
 
     # Global channels: admins, regular users, empty-team managers.
     broadcast_prepend_to "feedback_submissions", target: "submissions", html: card
     broadcast_replace_to "dashboard", target: "metric_cards",
-      html: ApplicationController.render(Dashboard::MetricCardsFragment.new)
+      html: ApplicationController.render(Dashboard::MetricCardsFragment.new, layout: false)
     broadcast_prepend_to "dashboard", target: "recent_activity", html: activity
 
     # Per-manager channels: only managers whose team includes this CSR.
@@ -67,7 +67,7 @@ class FeedbackSubmission < ApplicationRecord
       scope = FeedbackSubmission.for_csrs(manager.team_csr_names)
       broadcast_prepend_to "feedback_submissions:#{manager.id}", target: "submissions", html: card
       broadcast_replace_to "dashboard:#{manager.id}", target: "metric_cards",
-        html: ApplicationController.render(Dashboard::MetricCardsFragment.new(scope: scope))
+        html: ApplicationController.render(Dashboard::MetricCardsFragment.new(scope: scope), layout: false)
       broadcast_prepend_to "dashboard:#{manager.id}", target: "recent_activity", html: activity
     end
   end

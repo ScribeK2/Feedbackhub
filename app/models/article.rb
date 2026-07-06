@@ -20,6 +20,6 @@ class Article < ApplicationRecord
   def broadcast_to_dashboard
     broadcast_prepend_to "dashboard",
       target: "recent_activity",
-      html: ApplicationController.render(Dashboard::ActivityItemComponent.new(item: self, type: :article))
+      html: ApplicationController.render(Dashboard::ActivityItemComponent.new(item: self, type: :article), layout: false)
   end
 end

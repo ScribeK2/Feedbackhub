@@ -49,6 +49,22 @@ class CommentTest < ActiveSupport::TestCase
     assert_empty Notification.where(comment: comment, user: @author)
   end
 
+  test "comment broadcast payload is not wrapped in the application layout" do
+    streams = capture_turbo_stream_broadcasts("feedback_submission_comments:#{@submission.id}") do
+      @submission.comments.create!(author: @author, body: "Layout check")
+    end
+    assert streams.any?, "expected a comment broadcast"
+    streams.each { |stream| assert_no_match(/<main/i, stream.to_html) }
+  end
+
+  test "bell broadcast payload is not wrapped in the application layout" do
+    streams = capture_turbo_stream_broadcasts("notifications:#{users(:manager).id}") do
+      @submission.comments.create!(author: @author, body: "Bell layout check")
+    end
+    assert streams.any?, "expected a bell broadcast"
+    streams.each { |stream| assert_no_match(/<main/i, stream.to_html) }
+  end
+
   test "destroying a submission destroys its comments and notifications" do
     comment = @submission.comments.create!(author: @author, body: "Ephemeral")
     assert Notification.where(comment: comment).exists?
