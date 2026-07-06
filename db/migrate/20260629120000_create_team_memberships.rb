@@ -5,6 +5,6 @@ class CreateTeamMemberships < ActiveRecord::Migration[8.1]
       t.string :csr_name, null: false
       t.timestamps
     end
-    add_index :team_memberships, [:manager_id, :csr_name], unique: true
+    add_index :team_memberships, [ :manager_id, :csr_name ], unique: true
   end
 end

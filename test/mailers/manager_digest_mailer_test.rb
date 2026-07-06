@@ -8,7 +8,7 @@ class ManagerDigestMailerTest < ActionMailer::TestCase
     submissions = FeedbackSubmission.for_csrs(manager.team_csr_names)
     email = ManagerDigestMailer.daily(manager, submissions)
 
-    assert_equal [manager.email], email.to
+    assert_equal [ manager.email ], email.to
     assert_match "Jane Doe", email.body.encoded
     assert_match "TK-001", email.body.encoded
     assert_match "TK-002", email.body.encoded

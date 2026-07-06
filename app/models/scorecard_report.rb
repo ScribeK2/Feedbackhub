@@ -106,7 +106,7 @@ class ScorecardReport
 
   def ordered_tally(values, order)
     counts = values.compact.tally
-    order.to_h { |key| [key, counts.fetch(key, 0)] }
+    order.to_h { |key| [ key, counts.fetch(key, 0) ] }
   end
 
   def tally_desc(values)

@@ -129,8 +129,8 @@ class FeedbackSubmissionTest < ActiveSupport::TestCase
   end
 
   test "for_csrs matches case-insensitively and ignores blanks" do
-    assert_includes FeedbackSubmission.for_csrs(["jane doe"]), feedback_submissions(:high_priority)
-    assert_includes FeedbackSubmission.for_csrs(["JANE DOE"]), feedback_submissions(:high_priority)
+    assert_includes FeedbackSubmission.for_csrs([ "jane doe" ]), feedback_submissions(:high_priority)
+    assert_includes FeedbackSubmission.for_csrs([ "JANE DOE" ]), feedback_submissions(:high_priority)
     assert_empty FeedbackSubmission.for_csrs([])
     assert_empty FeedbackSubmission.for_csrs(nil)
   end

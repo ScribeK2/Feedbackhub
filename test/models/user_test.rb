@@ -88,7 +88,7 @@ class UserTest < ActiveSupport::TestCase
   end
 
   test "team_csr_names lists the manager's CSR names" do
-    assert_equal ["Jane Doe"], users(:manager).team_csr_names
+    assert_equal [ "Jane Doe" ], users(:manager).team_csr_names
   end
 
   test "team_scoped? true for manager with memberships" do
