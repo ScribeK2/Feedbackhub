@@ -8,6 +8,7 @@ module Feedback
 
     def view_template
       Card as: :div,
+        id: "submission_card_#{@submission.id}",
         class: "surface surface-raised cursor-pointer",
         style: "view-transition-name: card-#{@submission.id}",
         data: { action: "click->modal#open", modal_id_param: "submission-#{@submission.id}" } do |card|
@@ -28,8 +29,11 @@ module Feedback
         h3(class: "card-title text-sm font-semibold") do
           plain @submission.feedback_template.name
         end
-        Badge priority_modifier, :sm, class: "badge-soft" do
-          plain @submission.data["priority"] || "—"
+        div(class: "flex gap-1") do
+          render StatusBadgeComponent.new(submission: @submission)
+          Badge priority_modifier, :sm, class: "badge-soft" do
+            plain @submission.data["priority"] || "—"
+          end
         end
       end
     end

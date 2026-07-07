@@ -31,8 +31,13 @@ module Hub
             plain "Submitted #{time_ago_in_words(@submission.created_at)} ago"
           end
         end
-        Badge priority_modifier, :lg do
-          plain @submission.data["priority"] || "—"
+        div(class: "flex items-center gap-2") do
+          span(id: "submission_status_badge_#{@submission.id}") do
+            render Feedback::StatusBadgeComponent.new(submission: @submission, size: :lg)
+          end
+          Badge priority_modifier, :lg do
+            plain @submission.data["priority"] || "—"
+          end
         end
       end
     end

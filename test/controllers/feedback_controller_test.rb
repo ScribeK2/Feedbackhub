@@ -126,4 +126,12 @@ class FeedbackControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "a.link-primary", text: "Off Team", count: 0
   end
+
+  test "index shows a status column with badges" do
+    sign_in_as_user
+    get feedback_index_path
+    assert_response :success
+    assert_select "th", text: "Status"
+    assert_select "#submission_row_#{feedback_submissions(:high_priority).id} .badge", text: "Open"
+  end
 end
