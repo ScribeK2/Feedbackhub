@@ -1,12 +1,29 @@
 <h1>Daily feedback digest</h1>
-<p>Hi <%= @manager.name %>, here is new feedback for your team since your last digest:</p>
-<ul>
-  <% @submissions.each do |s| %>
-    <li>
-      <strong><%= s.csr_name %></strong>
-      — <%= s.priority || "—" %> / <%= s.feedback_type || "—" %>
-      (ticket <%= s.ticket_number || "—" %>, submitted by <%= s.submitted_by || "—" %>)
-      on <%= s.created_at.strftime("%b %d, %Y %H:%M") %>
-    </li>
-  <% end %>
-</ul>
+<% if @submissions.any? %>
+  <p>Hi <%= @manager.name %>, here is new feedback for your team since your last digest:</p>
+  <ul>
+    <% @submissions.each do |s| %>
+      <li>
+        <strong><%= s.csr_name %></strong>
+        — <%= s.priority || "—" %> / <%= s.feedback_type || "—" %>
+        (ticket <%= s.ticket_number || "—" %>, submitted by <%= s.submitted_by || "—" %>)
+        on <%= s.created_at.strftime("%b %d, %Y %H:%M") %>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>Hi <%= @manager.name %>, no new feedback since your last digest.</p>
+<% end %>
+<% if @open_submissions.any? %>
+  <h2>Still open on your team</h2>
+  <ul>
+    <% @open_submissions.each do |s| %>
+      <li>
+        <strong><%= s.csr_name %></strong>
+        — <%= s.priority || "—" %> / <%= s.feedback_type || "—" %>
+        (ticket <%= s.ticket_number || "—" %>)
+        — open <%= time_ago_in_words(s.created_at) %>
+      </li>
+    <% end %>
+  </ul>
+<% end %>

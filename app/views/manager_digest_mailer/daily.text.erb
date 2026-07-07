@@ -1,7 +1,19 @@
 Daily feedback digest
 
+<% if @submissions.any? -%>
 Hi <%= @manager.name %>, here is new feedback for your team since your last digest:
 
 <% @submissions.each do |s| -%>
 - <%= s.csr_name %> — <%= s.priority || "—" %> / <%= s.feedback_type || "—" %> (ticket <%= s.ticket_number || "—" %>, by <%= s.submitted_by || "—" %>) on <%= s.created_at.strftime("%b %d, %Y %H:%M") %>
+<% end -%>
+<% else -%>
+Hi <%= @manager.name %>, no new feedback since your last digest.
+<% end -%>
+<% if @open_submissions.any? -%>
+
+Still open on your team:
+
+<% @open_submissions.each do |s| -%>
+- <%= s.csr_name %> — <%= s.priority || "—" %> / <%= s.feedback_type || "—" %> (ticket <%= s.ticket_number || "—" %>) — open <%= time_ago_in_words(s.created_at) %>
+<% end -%>
 <% end -%>
