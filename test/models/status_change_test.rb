@@ -3,6 +3,7 @@
 require "test_helper"
 
 class StatusChangeTest < ActiveSupport::TestCase
+  include ActionMailer::TestHelper
   setup do
     @submission = feedback_submissions(:high_priority)
     @manager = users(:manager)
@@ -57,5 +58,45 @@ class StatusChangeTest < ActiveSupport::TestCase
     assert_difference "StatusChange.count", -1 do
       @submission.destroy
     end
+  end
+
+  test "actioned transition notifies subscribers except the actor" do
+    @submission.feedback_subscriptions.create!(user: users(:regular))
+
+    assert_difference "Notification.count", 1 do
+      assert_enqueued_emails 1 do
+        @submission.transition_to("actioned", actor: @manager, note: "Coached")
+      end
+    end
+
+    notification = Notification.last
+    assert_equal users(:regular), notification.user
+    assert_equal StatusChange.last, notification.event
+  end
+
+  test "reviewed transition does not notify" do
+    @submission.feedback_subscriptions.create!(user: users(:regular))
+
+    assert_no_difference "Notification.count" do
+      assert_no_enqueued_emails do
+        @submission.transition_to("reviewed", actor: @manager)
+      end
+    end
+  end
+
+  test "reopening notifies" do
+    @submission.update!(status: "actioned")
+    @submission.feedback_subscriptions.create!(user: users(:regular))
+
+    assert_difference "Notification.count", 1 do
+      @submission.transition_to("open", actor: @manager)
+    end
+  end
+
+  test "notification copy reads naturally" do
+    change = @submission.status_changes.create!(actor: @manager, from_status: "open",
+                                                to_status: "actioned", note: "Coached")
+    assert_equal "Manager User marked actioned feedback for Jane Doe", change.notification_headline
+    assert_equal "Coached", change.notification_body
   end
 end

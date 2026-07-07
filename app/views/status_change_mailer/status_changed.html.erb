@@ -1,0 +1,9 @@
+<h1>Feedback status changed</h1>
+<p>Hi <%= @recipient.name %>,</p>
+<p>
+  <%= @status_change.actor.name %> <%= @status_change.verb %> the feedback for
+  <strong><%= @submission.csr_label %></strong><% if @status_change.note.present? %> with the note:<% end %>
+</p>
+<% if @status_change.note.present? %>
+  <blockquote><%= @status_change.note %></blockquote>
+<% end %>

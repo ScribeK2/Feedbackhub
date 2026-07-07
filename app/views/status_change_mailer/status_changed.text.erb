@@ -1,0 +1,7 @@
+Hi <%= @recipient.name %>,
+
+<%= @status_change.actor.name %> <%= @status_change.verb %> the feedback for <%= @submission.csr_label %>.
+<% if @status_change.note.present? -%>
+
+Note: <%= @status_change.note %>
+<% end -%>

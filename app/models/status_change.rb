@@ -6,9 +6,11 @@ class StatusChange < ApplicationRecord
     "dismissed" => %w[open]
   }.freeze
   NOTE_REQUIRED_STATUSES = %w[actioned dismissed].freeze
+  NOTIFYING_STATUSES = %w[actioned dismissed open].freeze
 
   belongs_to :feedback_submission
   belongs_to :actor, class_name: "User"
+  has_many :notifications, as: :event, dependent: :destroy
 
   validates :from_status, :to_status, presence: true, inclusion: { in: FeedbackSubmission::STATUSES }
   validates :note, presence: true, if: -> { NOTE_REQUIRED_STATUSES.include?(to_status) }
@@ -16,9 +18,19 @@ class StatusChange < ApplicationRecord
 
   scope :chronological, -> { order(created_at: :asc) }
 
+  after_create_commit :notify_recipients, if: :notifiable?
+
   # "reopened" | "marked reviewed" | "marked actioned" | "marked dismissed"
   def verb
     to_status == "open" ? "reopened" : "marked #{to_status}"
+  end
+
+  def notification_headline
+    "#{actor.name} #{verb} feedback for #{feedback_submission.csr_label}"
+  end
+
+  def notification_body
+    note
   end
 
   private
@@ -28,5 +40,16 @@ class StatusChange < ApplicationRecord
     return if ALLOWED_TRANSITIONS.fetch(from_status, []).include?(to_status)
 
     errors.add(:to_status, "cannot change from #{from_status} to #{to_status}")
+  end
+
+  def notifiable?
+    NOTIFYING_STATUSES.include?(to_status)
+  end
+
+  def notify_recipients
+    feedback_submission.notification_recipients(except: actor).find_each do |user|
+      Notification.create!(user: user, event: self)
+      StatusChangeMailer.status_changed(user, self).deliver_later
+    end
   end
 end
