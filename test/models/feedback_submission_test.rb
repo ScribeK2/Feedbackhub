@@ -236,4 +236,43 @@ class FeedbackSubmissionTest < ActiveSupport::TestCase
     assert_includes FeedbackSubmission.closed, feedback_submissions(:simple_submission)
     assert_equal [ feedback_submissions(:low_priority) ], FeedbackSubmission.with_status("actioned").to_a
   end
+
+  test "transition_to records a change and updates the status" do
+    submission = feedback_submissions(:high_priority)
+    change = submission.transition_to("reviewed", actor: users(:manager))
+
+    assert change.persisted?
+    assert_equal "reviewed", submission.reload.status
+    assert_equal "open", change.from_status
+    assert_equal users(:manager), change.actor
+  end
+
+  test "transition_to without a required note returns errors and leaves status unchanged" do
+    submission = feedback_submissions(:high_priority)
+    change = submission.transition_to("actioned", actor: users(:manager))
+
+    assert_not change.persisted?
+    assert change.errors[:note].any?
+    assert_equal "open", submission.reload.status
+  end
+
+  test "transition_to rejects illegal moves" do
+    submission = feedback_submissions(:high_priority)
+    change = submission.transition_to("open", actor: users(:manager))
+
+    assert_not change.persisted?
+    assert_equal "open", submission.reload.status
+  end
+
+  test "triagable_by? allows admins, on-team managers, and nobody else" do
+    submission = feedback_submissions(:high_priority) # CSR "Jane Doe"
+    off_team = User.create!(email: "other-manager@test.com", name: "Other Manager",
+                            password: "password", role: "manager")
+
+    assert submission.triagable_by?(users(:admin))
+    assert submission.triagable_by?(users(:manager))
+    assert_not submission.triagable_by?(off_team)
+    assert_not submission.triagable_by?(users(:regular))
+    assert_not submission.triagable_by?(nil)
+  end
 end

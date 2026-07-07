@@ -63,6 +63,27 @@ class FeedbackSubmission < ApplicationRecord
     User.managers_for(csr_name).exists?(id: user.id)
   end
 
+  # Records a status transition and updates the denormalized status column.
+  # Returns the StatusChange — persisted on success, carrying errors on failure.
+  def transition_to(new_status, actor:, note: nil)
+    change = status_changes.new(actor: actor, from_status: status, to_status: new_status, note: note)
+    if change.valid?
+      transaction do
+        change.save!
+        update!(status: new_status)
+      end
+    end
+    change
+  end
+
+  # Managers may triage feedback for CSRs on their team; admins may triage anything.
+  def triagable_by?(user)
+    return false unless user
+    return true if user.admin?
+
+    user.manager? && User.managers_for(csr_name).exists?(id: user.id)
+  end
+
   private
 
   def subscribe_submitter
