@@ -78,4 +78,18 @@ class ScorecardsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "No issues logged"
   end
+
+  test "show renders the follow-through breakdown" do
+    sign_in_as_manager
+    get scorecard_path(csr: "Jane Doe")
+    assert_response :success
+    assert_match "Follow-through", response.body
+  end
+
+  test "index tiles show open counts" do
+    sign_in_as_manager
+    get scorecards_path
+    assert_response :success
+    assert_match "2 open", response.body # Jane Doe fixtures: TK-001 + TK-002, both open
+  end
 end

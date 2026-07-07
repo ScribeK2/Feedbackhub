@@ -42,7 +42,7 @@ class ScorecardsController < ApplicationController
   def tiles_for(names)
     names.map do |name|
       report = ScorecardReport.new(csr_name: name)
-      { csr_name: name, count: report.total_count, delta: report.delta }
+      { csr_name: name, count: report.total_count, delta: report.delta, open_count: report.open_count }
     end
   end
 

@@ -43,6 +43,11 @@ module Scorecards
               render_delta(tile[:delta])
             end
             p(class: "text-xs text-base-content/60 mt-1") { "issues, last 30 days" }
+            if tile[:open_count].positive?
+              div(class: "mt-2") do
+                Badge(:info, :sm, class: "badge-soft") { "#{tile[:open_count]} open" }
+              end
+            end
           end
         end
       end

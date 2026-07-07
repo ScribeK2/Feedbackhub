@@ -25,6 +25,11 @@ class ScorecardReport
     @total_count ||= base.where(created_at: date_range).count
   end
 
+  # All-time open items for this CSR (not period-bounded): a nudge, not a trend.
+  def open_count
+    @open_count ||= base.open.count
+  end
+
   def previous_count
     @previous_count ||= base.where(created_at: previous_range).count
   end
@@ -43,6 +48,10 @@ class ScorecardReport
 
   def impact_counts
     tally_desc(current_submissions.map { |s| s.data["impact"] })
+  end
+
+  def status_counts
+    ordered_tally(current_submissions.map(&:status), FeedbackSubmission::STATUSES)
   end
 
   def trend_buckets

@@ -78,4 +78,28 @@ class ScorecardReportTest < ActiveSupport::TestCase
     assert_not report.empty?
     assert report.zero_in_period?
   end
+
+  test "status_counts tallies the current period by status" do
+    template = feedback_templates(:csr_feedback)
+    FeedbackSubmission.create!(feedback_template: template,
+      data: { "csr" => "Status CSR", "priority" => "High" })
+    closed = FeedbackSubmission.create!(feedback_template: template,
+      data: { "csr" => "Status CSR", "priority" => "Low" })
+    closed.update!(status: "actioned")
+
+    report = ScorecardReport.new(csr_name: "Status CSR")
+    assert_equal({ "open" => 1, "reviewed" => 0, "actioned" => 1, "dismissed" => 0 }, report.status_counts)
+  end
+
+  test "open_count counts open items across all time" do
+    template = feedback_templates(:csr_feedback)
+    old = FeedbackSubmission.create!(feedback_template: template,
+      data: { "csr" => "Status CSR", "priority" => "High" })
+    old.update_columns(created_at: 2.years.ago)
+    FeedbackSubmission.create!(feedback_template: template,
+      data: { "csr" => "Status CSR", "priority" => "Low" })
+
+    report = ScorecardReport.new(csr_name: "Status CSR")
+    assert_equal 2, report.open_count
+  end
 end
