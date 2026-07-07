@@ -17,10 +17,8 @@ module Scorecards
           div(class: "grid grid-cols-1 lg:grid-cols-3 gap-4") do
             render BreakdownComponent.new(title: "Severity", counts: @report.severity_counts)
             render BreakdownComponent.new(title: "Category", counts: @report.category_counts)
-            render BreakdownComponent.new(title: "Impact", counts: @report.impact_counts)
-          end
-          div(class: "grid grid-cols-1 lg:grid-cols-3 gap-4") do
             render BreakdownComponent.new(title: "Follow-through", counts: @report.status_counts)
+            render BreakdownComponent.new(title: "Impact", counts: @report.impact_counts)
           end
           render_recent
         end
