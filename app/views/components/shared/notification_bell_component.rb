@@ -27,8 +27,7 @@ module Shared
     private
 
     def render_items(menu)
-      notifications = @user.notifications.recent
-        .includes(comment: [ :author, :feedback_submission ]).limit(10)
+      notifications = @user.notifications.recent.includes(:event).limit(10)
 
       if notifications.empty?
         menu.item do
@@ -63,9 +62,7 @@ module Shared
     end
 
     def notification_text(notification)
-      comment = notification.comment
-      target = comment.feedback_submission.csr_name.presence || "a feedback submission"
-      "#{comment.author.name} commented on feedback for #{target}"
+      notification.event.notification_headline
     end
 
     def render_bell_icon

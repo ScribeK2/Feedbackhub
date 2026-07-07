@@ -22,7 +22,7 @@ module Notifications
           Card :base_100, class: "shadow" do |card|
             card.body do
               p(class: "text-base-content/60 text-center py-4") do
-                plain "No notifications yet. You'll be notified when someone comments on a feedback you follow."
+                plain "No notifications yet. You'll be notified when there's activity on a feedback you follow."
               end
             end
           end
@@ -39,18 +39,17 @@ module Notifications
     private
 
     def render_notification(notification)
-      comment = notification.comment
-      target = comment.feedback_submission.csr_name.presence || "a feedback submission"
+      event = notification.event
 
       a(
         href: notification_path(notification),
         class: "flex items-start justify-between gap-3 p-3 rounded hover:bg-base-200 #{notification.read? ? 'opacity-60' : ''}"
       ) do
         div do
-          p(class: "text-sm font-medium") do
-            plain "#{comment.author.name} commented on feedback for #{target}"
+          p(class: "text-sm font-medium") { event.notification_headline }
+          if event.notification_body.present?
+            p(class: "text-sm text-base-content/70 line-clamp-2") { event.notification_body }
           end
-          p(class: "text-sm text-base-content/70 line-clamp-2") { comment.body }
         end
         div(class: "flex flex-col items-end gap-1 shrink-0") do
           span(class: "text-xs text-base-content/50") do

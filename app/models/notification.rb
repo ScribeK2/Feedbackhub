@@ -1,8 +1,8 @@
 class Notification < ApplicationRecord
   belongs_to :user
-  belongs_to :comment
+  belongs_to :event, polymorphic: true
 
-  validates :comment_id, uniqueness: { scope: :user_id }
+  validates :event_id, uniqueness: { scope: [ :user_id, :event_type ] }
 
   scope :unread, -> { where(read_at: nil) }
   scope :recent, -> { order(created_at: :desc) }

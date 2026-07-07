@@ -3,7 +3,6 @@ class CommentMailer < ApplicationMailer
     @recipient = recipient
     @comment = comment
     @submission = comment.feedback_submission
-    subject_target = @submission.csr_name.presence || "a feedback submission"
-    mail(to: recipient.email, subject: "New comment on feedback for #{subject_target}")
+    mail(to: recipient.email, subject: "New comment on feedback for #{@submission.csr_label}")
   end
 end

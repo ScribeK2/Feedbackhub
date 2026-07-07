@@ -84,6 +84,11 @@ class FeedbackSubmission < ApplicationRecord
     user.manager? && User.managers_for(csr_name).exists?(id: user.id)
   end
 
+  # Human label for notification/mailer copy.
+  def csr_label
+    csr_name.presence || "a feedback submission"
+  end
+
   private
 
   def subscribe_submitter

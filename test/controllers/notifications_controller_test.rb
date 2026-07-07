@@ -6,7 +6,7 @@ class NotificationsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @submission = feedback_submissions(:high_priority)
     @comment = @submission.comments.create!(author: users(:regular), body: "For the manager")
-    @notification = Notification.find_by!(comment: @comment, user: users(:manager))
+    @notification = Notification.find_by!(event: @comment, user: users(:manager))
   end
 
   test "requires authentication" do

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_07_120001) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_07_120002) do
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.text "body"
     t.datetime "created_at", null: false
@@ -119,13 +119,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_07_120001) do
   end
 
   create_table "notifications", force: :cascade do |t|
-    t.integer "comment_id", null: false
     t.datetime "created_at", null: false
+    t.integer "event_id", null: false
+    t.string "event_type", null: false
     t.datetime "read_at"
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
-    t.index ["comment_id"], name: "index_notifications_on_comment_id"
-    t.index ["user_id", "comment_id"], name: "index_notifications_on_user_id_and_comment_id", unique: true
+    t.index ["event_type", "event_id"], name: "index_notifications_on_event_type_and_event_id"
+    t.index ["user_id", "event_type", "event_id"], name: "index_notifications_on_user_id_and_event_type_and_event_id", unique: true
     t.index ["user_id", "read_at"], name: "index_notifications_on_user_id_and_read_at"
     t.index ["user_id"], name: "index_notifications_on_user_id"
   end
@@ -189,7 +190,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_07_120001) do
   add_foreign_key "feedback_submissions", "users", column: "submitter_id"
   add_foreign_key "feedback_subscriptions", "feedback_submissions"
   add_foreign_key "feedback_subscriptions", "users"
-  add_foreign_key "notifications", "comments"
   add_foreign_key "notifications", "users"
   add_foreign_key "status_changes", "feedback_submissions"
   add_foreign_key "status_changes", "users", column: "actor_id"

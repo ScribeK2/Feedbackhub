@@ -2,7 +2,7 @@ class Comment < ApplicationRecord
   belongs_to :feedback_submission
   belongs_to :author, class_name: "User"
 
-  has_many :notifications, dependent: :destroy
+  has_many :notifications, as: :event, dependent: :destroy
 
   validates :body, presence: true
 
@@ -11,6 +11,14 @@ class Comment < ApplicationRecord
   after_create_commit :subscribe_author
   after_create_commit :notify_recipients
   after_create_commit :broadcast_comment
+
+  def notification_headline
+    "#{author.name} commented on feedback for #{feedback_submission.csr_label}"
+  end
+
+  def notification_body
+    body
+  end
 
   private
 
@@ -22,7 +30,7 @@ class Comment < ApplicationRecord
 
   def notify_recipients
     feedback_submission.notification_recipients(except: author).find_each do |user|
-      Notification.create!(user: user, comment: self)
+      Notification.create!(user: user, event: self)
       CommentMailer.new_comment(user, self).deliver_later
     end
   end

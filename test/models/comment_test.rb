@@ -37,7 +37,7 @@ class CommentTest < ActiveSupport::TestCase
       comment = @submission.comments.create!(author: @author, body: "Heads up")
     end
 
-    recipients = Notification.where(comment: comment).map(&:user)
+    recipients = Notification.where(event: comment).map(&:user)
     assert_includes recipients, @admin
     assert_includes recipients, users(:manager)
     assert_not_includes recipients, @author
@@ -46,7 +46,7 @@ class CommentTest < ActiveSupport::TestCase
   test "the comment author is not notified about their own comment" do
     @submission.feedback_subscriptions.create!(user: @author)
     comment = @submission.comments.create!(author: @author, body: "My own note")
-    assert_empty Notification.where(comment: comment, user: @author)
+    assert_empty Notification.where(event: comment, user: @author)
   end
 
   test "comment broadcast payload is not wrapped in the application layout" do
@@ -67,9 +67,9 @@ class CommentTest < ActiveSupport::TestCase
 
   test "destroying a submission destroys its comments and notifications" do
     comment = @submission.comments.create!(author: @author, body: "Ephemeral")
-    assert Notification.where(comment: comment).exists?
+    assert Notification.where(event: comment).exists?
     @submission.destroy!
     assert_not Comment.exists?(comment.id)
-    assert_not Notification.where(comment_id: comment.id).exists?
+    assert_not Notification.where(event: comment).exists?
   end
 end

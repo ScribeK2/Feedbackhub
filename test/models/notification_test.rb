@@ -6,7 +6,7 @@ class NotificationTest < ActiveSupport::TestCase
   setup do
     submission = feedback_submissions(:high_priority)
     @comment = submission.comments.create!(author: users(:regular), body: "Ping")
-    @notification = Notification.find_by!(comment: @comment, user: users(:manager))
+    @notification = Notification.find_by!(event: @comment, user: users(:manager))
   end
 
   test "starts unread and mark_read! sets read_at once" do
@@ -22,7 +22,7 @@ class NotificationTest < ActiveSupport::TestCase
   end
 
   test "is unique per user and comment" do
-    duplicate = Notification.new(user: users(:manager), comment: @comment)
+    duplicate = Notification.new(user: users(:manager), event: @comment)
     assert_not duplicate.valid?
   end
 end
