@@ -72,6 +72,7 @@ class FeedbackSubmission < ApplicationRecord
         change.save!
         update!(status: new_status)
       end
+      broadcast_status_change
     end
     change
   end
@@ -95,23 +96,40 @@ class FeedbackSubmission < ApplicationRecord
     feedback_subscriptions.create!(user: submitter) if submitter
   end
 
+  # Yields once for the global streams (manager = nil) and once per manager
+  # whose team includes this CSR, with that audience's submission scope.
+  def each_broadcast_audience
+    yield nil, FeedbackSubmission.all
+    User.managers_for(csr_name).find_each do |manager|
+      yield manager, FeedbackSubmission.for_csrs(manager.team_csr_names)
+    end
+  end
+
+  def stream_name(base, manager)
+    manager ? "#{base}:#{manager.id}" : base
+  end
+
   def broadcast_updates
     card = ApplicationController.render(Feedback::CardComponent.new(submission: self), layout: false)
     activity = ApplicationController.render(Dashboard::ActivityItemComponent.new(item: self, type: :feedback), layout: false)
 
-    # Global channels: admins, regular users, empty-team managers.
-    broadcast_prepend_to "feedback_submissions", target: "submissions", html: card
-    broadcast_replace_to "dashboard", target: "metric_cards",
-      html: ApplicationController.render(Dashboard::MetricCardsFragment.new, layout: false)
-    broadcast_prepend_to "dashboard", target: "recent_activity", html: activity
-
-    # Per-manager channels: only managers whose team includes this CSR.
-    User.managers_for(csr_name).each do |manager|
-      scope = FeedbackSubmission.for_csrs(manager.team_csr_names)
-      broadcast_prepend_to "feedback_submissions:#{manager.id}", target: "submissions", html: card
-      broadcast_replace_to "dashboard:#{manager.id}", target: "metric_cards",
+    each_broadcast_audience do |manager, scope|
+      broadcast_prepend_to stream_name("feedback_submissions", manager), target: "submissions", html: card
+      broadcast_replace_to stream_name("dashboard", manager), target: "metric_cards",
         html: ApplicationController.render(Dashboard::MetricCardsFragment.new(scope: scope), layout: false)
-      broadcast_prepend_to "dashboard:#{manager.id}", target: "recent_activity", html: activity
+      broadcast_prepend_to stream_name("dashboard", manager), target: "recent_activity", html: activity
+    end
+  end
+
+  def broadcast_status_change
+    row = ApplicationController.render(Feedback::RowComponent.new(submission: self), layout: false)
+    card = ApplicationController.render(Feedback::CardComponent.new(submission: self), layout: false)
+
+    each_broadcast_audience do |manager, scope|
+      broadcast_replace_to stream_name("feedback_submissions", manager), target: "submission_row_#{id}", html: row
+      broadcast_replace_to stream_name("feedback_submissions", manager), target: "submission_card_#{id}", html: card
+      broadcast_replace_to stream_name("dashboard", manager), target: "metric_cards",
+        html: ApplicationController.render(Dashboard::MetricCardsFragment.new(scope: scope), layout: false)
     end
   end
 

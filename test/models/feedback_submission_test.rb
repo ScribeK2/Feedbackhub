@@ -264,6 +264,40 @@ class FeedbackSubmissionTest < ActiveSupport::TestCase
     assert_equal "open", submission.reload.status
   end
 
+  test "status change broadcasts a row replacement to the feedback list" do
+    submission = feedback_submissions(:high_priority)
+    streams = capture_turbo_stream_broadcasts("feedback_submissions") do
+      submission.transition_to("reviewed", actor: users(:manager))
+    end
+    assert streams.any? { |s| s["target"] == "submission_row_#{submission.id}" }
+    assert streams.any? { |s| s["target"] == "submission_card_#{submission.id}" }
+  end
+
+  test "status change broadcasts metric cards to the global dashboard" do
+    submission = feedback_submissions(:high_priority)
+    streams = capture_turbo_stream_broadcasts("dashboard") do
+      submission.transition_to("reviewed", actor: users(:manager))
+    end
+    assert streams.any? { |s| s["target"] == "metric_cards" }
+  end
+
+  test "status change broadcasts to the team manager's scoped streams" do
+    submission = feedback_submissions(:high_priority)
+    manager = users(:manager)
+    streams = capture_turbo_stream_broadcasts("dashboard:#{manager.id}") do
+      submission.transition_to("reviewed", actor: manager)
+    end
+    assert streams.any? { |s| s["target"] == "metric_cards" }
+  end
+
+  test "failed transitions do not broadcast" do
+    submission = feedback_submissions(:high_priority)
+    streams = capture_turbo_stream_broadcasts("dashboard") do
+      submission.transition_to("actioned", actor: users(:manager)) # missing note
+    end
+    assert_empty streams
+  end
+
   test "triagable_by? allows admins, on-team managers, and nobody else" do
     submission = feedback_submissions(:high_priority) # CSR "Jane Doe"
     off_team = User.create!(email: "other-manager@test.com", name: "Other Manager",
