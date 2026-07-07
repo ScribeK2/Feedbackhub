@@ -3,10 +3,7 @@ class HubController < ApplicationController
     scope = team_scoped(FeedbackSubmission.all)
 
     render Dashboard::IndexComponent.new(
-      high_count: scope.high_priority.count,
-      medium_count: scope.medium_priority.count,
-      low_count: scope.low_priority.count,
-      total_count: scope.count,
+      scope: scope,
       recent_activity: recent_activity(scope)
     )
   end

@@ -7,11 +7,16 @@ module Dashboard
     end
 
     def view_template
+      open_scope = @scope.open
       div(id: "metric_cards", class: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4") do
-        render MetricCardComponent.new(title: "High Priority", count: @scope.high_priority.count, modifier: :error)
-        render MetricCardComponent.new(title: "Medium Priority", count: @scope.medium_priority.count, modifier: :warning)
-        render MetricCardComponent.new(title: "Low Priority", count: @scope.low_priority.count, modifier: :success)
-        render MetricCardComponent.new(title: "Total Feedbacks", count: @scope.count, modifier: :info)
+        render MetricCardComponent.new(title: "Open High Priority", count: open_scope.high_priority.count,
+          modifier: :error, href: feedback_index_path(status: "open", priority: "High"))
+        render MetricCardComponent.new(title: "Open Medium Priority", count: open_scope.medium_priority.count,
+          modifier: :warning, href: feedback_index_path(status: "open", priority: "Medium"))
+        render MetricCardComponent.new(title: "Open Low Priority", count: open_scope.low_priority.count,
+          modifier: :success, href: feedback_index_path(status: "open", priority: "Low"))
+        render MetricCardComponent.new(title: "Open Total", count: open_scope.count,
+          modifier: :info, href: feedback_index_path(status: "open"))
       end
     end
   end

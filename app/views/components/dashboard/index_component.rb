@@ -4,11 +4,8 @@ module Dashboard
   class IndexComponent < ApplicationComponent
     include Phlex::Rails::Helpers::TurboStreamFrom
 
-    def initialize(high_count:, medium_count:, low_count:, total_count:, recent_activity:)
-      @high_count = high_count
-      @medium_count = medium_count
-      @low_count = low_count
-      @total_count = total_count
+    def initialize(scope:, recent_activity:)
+      @scope = scope
       @recent_activity = recent_activity
     end
 
@@ -32,12 +29,7 @@ module Dashboard
     end
 
     def render_metric_cards
-      div(id: "metric_cards", class: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4") do
-        render MetricCardComponent.new(title: "High Priority", count: @high_count, modifier: :error)
-        render MetricCardComponent.new(title: "Medium Priority", count: @medium_count, modifier: :warning)
-        render MetricCardComponent.new(title: "Low Priority", count: @low_count, modifier: :success)
-        render MetricCardComponent.new(title: "Total Feedbacks", count: @total_count, modifier: :info)
-      end
+      render MetricCardsFragment.new(scope: @scope)
     end
 
     def render_activity_feed

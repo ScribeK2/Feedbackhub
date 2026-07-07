@@ -59,10 +59,10 @@ class HubControllerTest < ActionDispatch::IntegrationTest
     sign_in_as_manager
     get hub_path
     assert_response :success
-    # Team (Jane Doe): High=1, Medium=0, Low=1, Total=2.
-    # Off Team Person's High submission must NOT push High to 2 or Total to 3.
-    assert_select "#metric_cards .badge-error", text: "1"   # High Priority = 1, not 2
-    assert_select "#metric_cards .badge-info",  text: "2"   # Total Feedbacks = 2, not 3
+    # Team (Jane Doe): Open High=1, Open Medium=0, Open Low=1, Open Total=2.
+    # Off Team Person's High submission must NOT push Open High to 2 or Open Total to 3.
+    assert_select "#metric_cards .badge-error", text: "1"   # Open High = 1, not 2
+    assert_select "#metric_cards .badge-info",  text: "2"   # Open Total = 2, not 3
   end
 
   test "manager recent activity is feedback-only" do
@@ -70,5 +70,17 @@ class HubControllerTest < ActionDispatch::IntegrationTest
     get hub_path
     assert_response :success
     assert_select ".badge", text: "Article", count: 0
+  end
+
+  test "metric cards count only open items and link to the filtered index" do
+    feedback_submissions(:low_priority).update!(status: "actioned")
+
+    sign_in_as_user
+    get hub_path
+    assert_response :success
+    assert_match "Open High Priority", response.body
+    assert_select "#metric_cards a[href=?]", feedback_index_path(status: "open", priority: "High")
+    # Fixtures: 3 submissions, 1 actioned above => Open Total = 2
+    assert_select "#metric_cards .badge-info", text: "2"
   end
 end

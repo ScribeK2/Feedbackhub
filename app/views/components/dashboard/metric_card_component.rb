@@ -2,13 +2,24 @@
 
 module Dashboard
   class MetricCardComponent < ApplicationComponent
-    def initialize(title:, count:, modifier: :ghost)
+    def initialize(title:, count:, modifier: :ghost, href: nil)
       @title = title
       @count = count
       @modifier = modifier
+      @href = href
     end
 
     def view_template
+      if @href
+        a(href: @href, class: "block") { render_card }
+      else
+        render_card
+      end
+    end
+
+    private
+
+    def render_card
       Card class: "surface" do |card|
         card.body class: "items-center text-center" do
           h2(class: "card-title text-sm font-medium opacity-70") { @title }
