@@ -5,6 +5,7 @@ class User < ApplicationRecord
   has_many :updates, foreign_key: :author_id, dependent: :destroy
   has_many :team_memberships, foreign_key: :manager_id, dependent: :destroy
   has_many :comments, foreign_key: :author_id, dependent: :destroy
+  has_many :status_changes, foreign_key: :actor_id, dependent: :destroy
   has_many :feedback_subscriptions, dependent: :destroy
   has_many :notifications, dependent: :destroy
 

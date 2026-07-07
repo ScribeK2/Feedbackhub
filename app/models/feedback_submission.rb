@@ -5,6 +5,7 @@ class FeedbackSubmission < ApplicationRecord
   belongs_to :feedback_template
   belongs_to :submitter, class_name: "User", optional: true
   has_many :comments, dependent: :destroy
+  has_many :status_changes, dependent: :destroy
   has_many :feedback_subscriptions, dependent: :destroy
   has_rich_text :feedback_details
 

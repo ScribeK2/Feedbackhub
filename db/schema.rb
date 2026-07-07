@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_07_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_07_120001) do
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.text "body"
     t.datetime "created_at", null: false
@@ -130,6 +130,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_07_120000) do
     t.index ["user_id"], name: "index_notifications_on_user_id"
   end
 
+  create_table "status_changes", force: :cascade do |t|
+    t.integer "actor_id", null: false
+    t.datetime "created_at", null: false
+    t.integer "feedback_submission_id", null: false
+    t.string "from_status", null: false
+    t.text "note"
+    t.string "to_status", null: false
+    t.datetime "updated_at", null: false
+    t.index ["actor_id"], name: "index_status_changes_on_actor_id"
+    t.index ["feedback_submission_id"], name: "index_status_changes_on_feedback_submission_id"
+  end
+
   create_table "tags", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -179,6 +191,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_07_120000) do
   add_foreign_key "feedback_subscriptions", "users"
   add_foreign_key "notifications", "comments"
   add_foreign_key "notifications", "users"
+  add_foreign_key "status_changes", "feedback_submissions"
+  add_foreign_key "status_changes", "users", column: "actor_id"
   add_foreign_key "team_memberships", "users", column: "manager_id"
   add_foreign_key "updates", "users", column: "author_id"
 end
