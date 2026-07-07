@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_06_114503) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_07_120000) do
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.text "body"
     t.datetime "created_at", null: false
@@ -84,6 +84,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_06_114503) do
     t.integer "feedback_template_id", null: false
     t.string "feedback_type"
     t.string "priority"
+    t.string "status", default: "open", null: false
     t.string "submitted_by"
     t.integer "submitter_id"
     t.string "ticket_number"
@@ -92,6 +93,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_06_114503) do
     t.index ["feedback_template_id"], name: "index_feedback_submissions_on_feedback_template_id"
     t.index ["feedback_type"], name: "index_feedback_submissions_on_feedback_type"
     t.index ["priority"], name: "index_feedback_submissions_on_priority"
+    t.index ["status"], name: "index_feedback_submissions_on_status"
     t.index ["submitted_by"], name: "index_feedback_submissions_on_submitted_by"
     t.index ["submitter_id"], name: "index_feedback_submissions_on_submitter_id"
     t.index ["ticket_number"], name: "index_feedback_submissions_on_ticket_number"

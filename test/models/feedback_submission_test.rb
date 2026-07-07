@@ -210,4 +210,30 @@ class FeedbackSubmissionTest < ActiveSupport::TestCase
     submission.feedback_subscriptions.create!(user: users(:manager), subscribed: false)
     assert_not submission.subscribed?(users(:manager)), "explicit opt-out beats implicit interest"
   end
+
+  test "status defaults to open" do
+    submission = FeedbackSubmission.create!(
+      feedback_template: feedback_templates(:simple_template),
+      data: { "comment" => "Test", "priority" => "Low" }
+    )
+    assert_equal "open", submission.status
+  end
+
+  test "rejects an unknown status" do
+    submission = feedback_submissions(:high_priority)
+    submission.status = "bogus"
+    assert_not submission.valid?
+    assert_includes submission.errors[:status], "is not included in the list"
+  end
+
+  test "open and closed scopes partition by status" do
+    feedback_submissions(:low_priority).update!(status: "actioned")
+    feedback_submissions(:simple_submission).update!(status: "dismissed")
+
+    assert_includes FeedbackSubmission.open, feedback_submissions(:high_priority)
+    assert_not_includes FeedbackSubmission.open, feedback_submissions(:low_priority)
+    assert_includes FeedbackSubmission.closed, feedback_submissions(:low_priority)
+    assert_includes FeedbackSubmission.closed, feedback_submissions(:simple_submission)
+    assert_equal [ feedback_submissions(:low_priority) ], FeedbackSubmission.with_status("actioned").to_a
+  end
 end

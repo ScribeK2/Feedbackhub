@@ -1,4 +1,7 @@
 class FeedbackSubmission < ApplicationRecord
+  STATUSES = %w[open reviewed actioned dismissed].freeze
+  CLOSED_STATUSES = %w[actioned dismissed].freeze
+
   belongs_to :feedback_template
   belongs_to :submitter, class_name: "User", optional: true
   has_many :comments, dependent: :destroy
@@ -6,6 +9,7 @@ class FeedbackSubmission < ApplicationRecord
   has_rich_text :feedback_details
 
   validates :data, presence: true
+  validates :status, inclusion: { in: STATUSES }
 
   before_save :extract_grouping_fields
   after_create :subscribe_submitter
@@ -25,6 +29,18 @@ class FeedbackSubmission < ApplicationRecord
       q: "%#{sanitize_sql_like(q)}%"
     )
   }
+
+  # Kernel#open makes `scope :open` trip Active Record's dangerous-name guard,
+  # so these two are plain class methods.
+  def self.open
+    where(status: "open")
+  end
+
+  def self.closed
+    where(status: CLOSED_STATUSES)
+  end
+
+  scope :with_status, ->(status) { where(status: status) }
 
   after_create_commit :broadcast_updates
 
