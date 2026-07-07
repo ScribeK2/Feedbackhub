@@ -15,6 +15,7 @@ module Hub
         modal.body class: "w-11/12 max-w-4xl max-h-[calc(100vh-6rem)] p-6 sm:p-8 surface-overlay" do
           render_header
           render_content
+          render Feedback::TriageSectionComponent.new(submission: @submission, user: current_user)
           render_comments
           render_footer(modal)
         end

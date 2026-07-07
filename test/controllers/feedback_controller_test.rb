@@ -134,4 +134,29 @@ class FeedbackControllerTest < ActionDispatch::IntegrationTest
     assert_select "th", text: "Status"
     assert_select "#submission_row_#{feedback_submissions(:high_priority).id} .badge", text: "Open"
   end
+
+  test "show renders triage controls for the team manager" do
+    sign_in_as_manager
+    get feedback_path(feedback_submissions(:high_priority))
+    assert_response :success
+    assert_match "Mark Reviewed", response.body
+  end
+
+  test "show hides triage controls from regular users but keeps the status section" do
+    sign_in_as_user
+    get feedback_path(feedback_submissions(:high_priority))
+    assert_response :success
+    assert_no_match "Mark Reviewed", response.body
+    assert_match "triage_submission_#{feedback_submissions(:high_priority).id}", response.body
+  end
+
+  test "show renders the status timeline" do
+    submission = feedback_submissions(:high_priority)
+    submission.transition_to("reviewed", actor: users(:manager))
+
+    sign_in_as_manager
+    get feedback_path(submission)
+    assert_match "marked reviewed", response.body
+    assert_match users(:manager).name, response.body
+  end
 end

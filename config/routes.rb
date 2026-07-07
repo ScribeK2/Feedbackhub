@@ -12,6 +12,7 @@ Rails.application.routes.draw do
     end
     resources :comments, only: [ :index, :create ]
     resource :subscription, only: [ :update ]
+    resource :status, only: [ :update ]
   end
 
   resources :notifications, only: [ :index, :show ] do
