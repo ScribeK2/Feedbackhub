@@ -38,3 +38,6 @@
 !/app/assets/builds/.keep
 .gstack/
 /.internal/
+
+# Design specs and plans are working artifacts, not shipped code.
+/docs/superpowers/
