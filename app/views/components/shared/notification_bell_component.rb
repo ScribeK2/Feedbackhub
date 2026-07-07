@@ -27,7 +27,7 @@ module Shared
     private
 
     def render_items(menu)
-      notifications = @user.notifications.recent.includes(:event).limit(10)
+      notifications = @user.notifications.recent.limit(10).with_event_context
 
       if notifications.empty?
         menu.item do

@@ -9,6 +9,18 @@ class Notification < ApplicationRecord
 
   after_create_commit :broadcast_bell
 
+  # Preloads each polymorphic event's associations needed to render headlines
+  # (author/actor + feedback_submission), avoiding per-notification N+1 queries.
+  def self.with_event_context
+    includes(:event).load.tap do |notifications|
+      events = notifications.map(&:event)
+      events.group_by(&:class).each do |klass, records|
+        associations = klass == Comment ? [ :author, :feedback_submission ] : [ :actor, :feedback_submission ]
+        ActiveRecord::Associations::Preloader.new(records: records, associations: associations).call
+      end
+    end
+  end
+
   def read?
     read_at.present?
   end

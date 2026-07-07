@@ -75,7 +75,11 @@ module Feedback
     end
 
     def render_timeline
-      changes = @submission.status_changes.chronological.includes(:actor)
+      changes = if @submission.status_changes.loaded?
+        @submission.status_changes.sort_by(&:created_at)
+      else
+        @submission.status_changes.chronological.includes(:actor)
+      end
       return if changes.empty?
 
       ul(class: "mt-4 space-y-1") do

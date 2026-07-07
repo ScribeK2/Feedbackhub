@@ -1,7 +1,7 @@
 class NotificationsController < ApplicationController
   def index
     render Notifications::IndexComponent.new(
-      notifications: current_user.notifications.recent.includes(:event).limit(50)
+      notifications: current_user.notifications.recent.limit(50).with_event_context
     )
   end
 

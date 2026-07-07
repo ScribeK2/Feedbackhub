@@ -6,6 +6,7 @@
    Force-include the ones we rely on. */
 @source inline("dropdown-end");
 @source inline("modal-backdrop");
+@source inline("badge-lg");
 
 @plugin "daisyui/theme" {
   name: "fh-light";
