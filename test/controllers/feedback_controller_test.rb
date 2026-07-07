@@ -159,4 +159,22 @@ class FeedbackControllerTest < ActionDispatch::IntegrationTest
     assert_match "marked reviewed", response.body
     assert_match users(:manager).name, response.body
   end
+
+  test "index filters by status" do
+    feedback_submissions(:low_priority).update!(status: "dismissed")
+
+    sign_in_as_user
+    get feedback_index_path(status: "open")
+    assert_response :success
+    assert_match "TK-001", response.body
+    assert_no_match "TK-002", response.body
+  end
+
+  test "index filters by priority" do
+    sign_in_as_user
+    get feedback_index_path(priority: "High")
+    assert_response :success
+    assert_match "TK-001", response.body
+    assert_no_match "TK-002", response.body
+  end
 end

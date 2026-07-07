@@ -76,6 +76,9 @@ module Feedback
             )
           end
 
+          render_filter_select("Status", "status", FeedbackSubmission::STATUSES, @filters[:status])
+          render_filter_select("Priority", "priority", %w[High Medium Low], @filters[:priority])
+
           div(class: "form-control") do
             Button :ghost, :sm, type: "submit" do
               "Filter"
@@ -132,6 +135,20 @@ module Feedback
     def render_modals
       @submissions.each do |submission|
         render Hub::SubmissionModalComponent.new(submission: submission)
+      end
+    end
+
+    def render_filter_select(label_text, name, values, current)
+      div(class: "form-control") do
+        label(class: "label") do
+          span(class: "label-text text-sm") { label_text }
+        end
+        select(name: name, class: "select select-bordered select-sm", data: { filter_target: "input" }) do
+          option(value: "", selected: current.blank?) { "All" }
+          values.each do |value|
+            option(value: value, selected: current == value) { value.capitalize }
+          end
+        end
       end
     end
   end

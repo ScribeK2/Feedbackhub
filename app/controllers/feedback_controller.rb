@@ -4,10 +4,12 @@ class FeedbackController < ApplicationController
     @submissions = @submissions.where(csr_name: params[:csr]) if params[:csr].present?
     @submissions = @submissions.where(submitted_by: params[:submitted_by]) if params[:submitted_by].present?
     @submissions = @submissions.search(params[:q]) if params[:q].present?
+    @submissions = @submissions.with_status(params[:status]) if params[:status].present?
+    @submissions = @submissions.by_priority(params[:priority]) if params[:priority].present?
 
     render Feedback::IndexComponent.new(
       submissions: @submissions,
-      filters: { q: params[:q], csr: params[:csr], submitted_by: params[:submitted_by] }
+      filters: { q: params[:q], csr: params[:csr], submitted_by: params[:submitted_by], status: params[:status], priority: params[:priority] }
     )
   end
 
