@@ -38,6 +38,11 @@ Rails.application.routes.draw do
   namespace :admin do
     resources :templates
     resources :users
+    resources :csrs, except: [ :show ] do
+      member do
+        post :merge
+      end
+    end
   end
 
   # Healthcheck endpoint for ONCE deployment
