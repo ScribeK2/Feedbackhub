@@ -23,4 +23,8 @@ class TeamMembershipTest < ActiveSupport::TestCase
   test "belongs to a manager" do
     assert_equal users(:manager), team_memberships(:manager_jane).manager
   end
+
+  test "for_csr matches case-insensitively" do
+    assert_includes TeamMembership.for_csr("JANE DOE"), team_memberships(:manager_jane)
+  end
 end

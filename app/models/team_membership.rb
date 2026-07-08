@@ -3,4 +3,6 @@ class TeamMembership < ApplicationRecord
 
   validates :csr_name, presence: true,
     uniqueness: { scope: :manager_id, case_sensitive: false }
+
+  scope :for_csr, ->(name) { where("LOWER(csr_name) = ?", name.to_s.downcase) }
 end

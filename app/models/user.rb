@@ -36,8 +36,6 @@ class User < ApplicationRecord
   def self.managers_for(csr_name)
     return none if csr_name.blank?
 
-    where(role: "manager").where(
-      id: TeamMembership.where("LOWER(csr_name) = ?", csr_name.to_s.downcase).select(:manager_id)
-    )
+    where(role: "manager").where(id: TeamMembership.for_csr(csr_name).select(:manager_id))
   end
 end
