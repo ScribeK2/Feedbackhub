@@ -66,4 +66,14 @@ class TeamMembershipsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to team_path
     assert_not_nil flash[:alert]
   end
+
+  test "index offers only active unassigned CSRs" do
+    get team_path
+    assert_response :success
+    assert_select "select[name='csr_name']" do
+      assert_select "option[value='Carlos Reyes']"
+      assert_select "option[value='Jane Doe']", false
+      assert_select "option[value='Former Employee']", false
+    end
+  end
 end

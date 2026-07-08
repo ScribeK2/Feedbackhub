@@ -4,7 +4,7 @@ class TeamMembershipsController < ApplicationController
   def index
     render Team::IndexComponent.new(
       memberships: current_user.team_memberships.order(:csr_name),
-      csr_suggestions: FeedbackSubmission.distinct.pluck(:csr_name).compact.sort
+      csr_options: Csr.active.order(:name).pluck(:name) - current_user.team_csr_names
     )
   end
 

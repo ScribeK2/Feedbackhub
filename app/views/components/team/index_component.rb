@@ -2,9 +2,9 @@
 
 module Team
   class IndexComponent < ApplicationComponent
-    def initialize(memberships:, csr_suggestions:)
+    def initialize(memberships:, csr_options:)
       @memberships = memberships
-      @csr_suggestions = csr_suggestions
+      @csr_options = csr_options
     end
 
     def view_template
@@ -61,16 +61,10 @@ module Team
         form(action: team_memberships_path, method: "post", class: "flex gap-2 items-end") do
           input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
           div(class: "form-control flex-1") do
-            label(class: "label") { span(class: "label-text text-sm") { "CSR name" } }
-            input(
-              type: "text",
-              name: "csr_name",
-              list: "csr_suggestions",
-              placeholder: "Start typing a CSR name…",
-              class: "input input-bordered input-sm w-full"
-            )
-            datalist(id: "csr_suggestions") do
-              @csr_suggestions.each { |name| option(value: name) }
+            label(class: "label") { span(class: "label-text text-sm") { "CSR" } }
+            select(name: "csr_name", class: "select select-bordered select-sm w-full") do
+              option(value: "") { "Select a CSR…" }
+              @csr_options.each { |name| option(value: name) { name } }
             end
           end
           Button(:primary, :sm, type: "submit") { "Save" }
