@@ -53,4 +53,17 @@ class TeamMembershipsControllerTest < ActionDispatch::IntegrationTest
     delete team_membership_path(foreign)
     assert_response :not_found
   end
+
+  test "create normalizes csr casing" do
+    post team_memberships_path, params: { csr_name: "carlos reyes" }
+    assert_equal "Carlos Reyes", users(:manager).team_memberships.for_csr("carlos reyes").first.csr_name
+  end
+
+  test "create rejects an unregistered CSR" do
+    assert_no_difference "TeamMembership.count" do
+      post team_memberships_path, params: { csr_name: "Ghost Person" }
+    end
+    assert_redirected_to team_path
+    assert_not_nil flash[:alert]
+  end
 end

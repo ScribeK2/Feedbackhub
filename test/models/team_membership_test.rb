@@ -27,4 +27,15 @@ class TeamMembershipTest < ActiveSupport::TestCase
   test "for_csr matches case-insensitively" do
     assert_includes TeamMembership.for_csr("JANE DOE"), team_memberships(:manager_jane)
   end
+
+  test "normalizes csr_name to canonical casing" do
+    m = TeamMembership.create!(manager: users(:admin), csr_name: "jane doe")
+    assert_equal "Jane Doe", m.csr_name
+  end
+
+  test "rejects an unregistered csr_name" do
+    m = TeamMembership.new(manager: users(:manager), csr_name: "Ghost Person")
+    assert_not m.valid?
+    assert_includes m.errors[:csr_name], "is not a registered CSR"
+  end
 end
