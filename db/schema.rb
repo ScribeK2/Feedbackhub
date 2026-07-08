@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_07_120002) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_08_130000) do
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.text "body"
     t.datetime "created_at", null: false
@@ -75,6 +75,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_07_120002) do
     t.datetime "updated_at", null: false
     t.index ["author_id"], name: "index_comments_on_author_id"
     t.index ["feedback_submission_id"], name: "index_comments_on_feedback_submission_id"
+  end
+
+  create_table "csrs", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id"
+    t.index ["name"], name: "index_csrs_on_name", unique: true
+    t.index ["user_id"], name: "index_csrs_on_user_id"
   end
 
   create_table "feedback_submissions", force: :cascade do |t|
@@ -186,6 +196,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_07_120002) do
   add_foreign_key "articles", "users", column: "author_id"
   add_foreign_key "comments", "feedback_submissions"
   add_foreign_key "comments", "users", column: "author_id"
+  add_foreign_key "csrs", "users"
   add_foreign_key "feedback_submissions", "feedback_templates"
   add_foreign_key "feedback_submissions", "users", column: "submitter_id"
   add_foreign_key "feedback_subscriptions", "feedback_submissions"
