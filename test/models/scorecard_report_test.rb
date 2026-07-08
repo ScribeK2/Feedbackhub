@@ -4,6 +4,7 @@ require "test_helper"
 
 class ScorecardReportTest < ActiveSupport::TestCase
   def build_submission(csr:, created_at:, priority: "High", feedback_type: "Knowledge Gap", impact: "Resolution Time")
+    Csr.lookup(csr) || Csr.create!(name: csr)
     FeedbackSubmission.create!(
       feedback_template: feedback_templates(:csr_feedback),
       created_at: created_at,
@@ -81,6 +82,7 @@ class ScorecardReportTest < ActiveSupport::TestCase
 
   test "status_counts tallies the current period by status" do
     template = feedback_templates(:csr_feedback)
+    Csr.lookup("Status CSR") || Csr.create!(name: "Status CSR")
     FeedbackSubmission.create!(feedback_template: template,
       data: { "csr" => "Status CSR", "priority" => "High" })
     closed = FeedbackSubmission.create!(feedback_template: template,
@@ -93,6 +95,7 @@ class ScorecardReportTest < ActiveSupport::TestCase
 
   test "open_count counts open items across all time" do
     template = feedback_templates(:csr_feedback)
+    Csr.lookup("Status CSR") || Csr.create!(name: "Status CSR")
     old = FeedbackSubmission.create!(feedback_template: template,
       data: { "csr" => "Status CSR", "priority" => "High" })
     old.update_columns(created_at: 2.years.ago)

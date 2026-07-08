@@ -11,6 +11,7 @@ class FeedbackSubmission < ApplicationRecord
 
   validates :data, presence: true
   validates :status, inclusion: { in: STATUSES }
+  validate :csr_must_be_registered
 
   before_save :extract_grouping_fields
   after_create :subscribe_submitter
@@ -134,10 +135,19 @@ class FeedbackSubmission < ApplicationRecord
   end
 
   def extract_grouping_fields
+    if (csr = Csr.lookup(data["csr"]))
+      data["csr"] = csr.name
+    end
     self.csr_name = data["csr"].presence
     self.submitted_by = data["submitted_by"].presence
     self.priority = data["priority"].presence
     self.feedback_type = data["feedback_type"].presence
     self.ticket_number = data["ticket_number"].presence
+  end
+
+  def csr_must_be_registered
+    return if data.blank? || data["csr"].blank?
+
+    errors.add(:base, "#{data['csr']} is not a registered CSR") unless Csr.lookup(data["csr"])
   end
 end

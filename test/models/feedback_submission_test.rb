@@ -309,4 +309,30 @@ class FeedbackSubmissionTest < ActiveSupport::TestCase
     assert_not submission.triagable_by?(users(:regular))
     assert_not submission.triagable_by?(nil)
   end
+
+  test "canonicalizes csr casing into csr_name and data on save" do
+    submission = FeedbackSubmission.create!(
+      feedback_template: feedback_templates(:csr_feedback),
+      data: { "csr" => "jane doe", "priority" => "High" }
+    )
+    assert_equal "Jane Doe", submission.csr_name
+    assert_equal "Jane Doe", submission.data["csr"]
+  end
+
+  test "rejects an unregistered csr" do
+    submission = FeedbackSubmission.new(
+      feedback_template: feedback_templates(:csr_feedback),
+      data: { "csr" => "Ghost Person", "priority" => "High" }
+    )
+    assert_not submission.valid?
+    assert_includes submission.errors[:base], "Ghost Person is not a registered CSR"
+  end
+
+  test "still allows submissions without a csr field" do
+    submission = FeedbackSubmission.new(
+      feedback_template: feedback_templates(:simple_template),
+      data: { "comment" => "Nice work" }
+    )
+    assert submission.valid?
+  end
 end

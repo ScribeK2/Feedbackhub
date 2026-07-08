@@ -177,4 +177,21 @@ class FeedbackControllerTest < ActionDispatch::IntegrationTest
     assert_match "TK-001", response.body
     assert_no_match "TK-002", response.body
   end
+
+  test "create rejects an unregistered CSR" do
+    assert_no_difference "FeedbackSubmission.count" do
+      post feedback_index_path, params: {
+        feedback_template_id: @template.id,
+        data: {
+          ticket_number: "TK-999",
+          csr: "Ghost Person",
+          feedback_type: "Knowledge Gap",
+          impact: "Resolution Time",
+          priority: "High",
+          submitted_by: "Tester"
+        }
+      }
+    end
+    assert_response :unprocessable_entity
+  end
 end
