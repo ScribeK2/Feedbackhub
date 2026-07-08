@@ -102,6 +102,8 @@ module Feedback
             class: "input input-bordered w-full",
             required: field[:required]
           )
+        when "csr"
+          render_csr_field(field)
         when "select"
           render_select_field(field)
         when "richtext"
@@ -134,6 +136,19 @@ module Feedback
             placeholder: "Please specify...",
             class: "input input-bordered w-full"
           )
+        end
+      end
+    end
+
+    def render_csr_field(field)
+      select(
+        name: "data[#{field[:name]}]",
+        class: "select select-bordered w-full",
+        required: field[:required]
+      ) do
+        option(value: "") { "Select..." }
+        Csr.active.order(:name).pluck(:name).each do |name|
+          option(value: name) { name }
         end
       end
     end

@@ -194,4 +194,13 @@ class FeedbackControllerTest < ActionDispatch::IntegrationTest
     end
     assert_response :unprocessable_entity
   end
+
+  test "form renders csr field as a select of active registered CSRs" do
+    get new_feedback_path(template_id: @template.id)
+    assert_response :success
+    assert_select "select[name='data[csr]']" do
+      assert_select "option[value='Jane Doe']"
+      assert_select "option[value='Former Employee']", false
+    end
+  end
 end

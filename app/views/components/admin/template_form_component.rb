@@ -56,7 +56,8 @@ module Admin
           ul(class: "list-disc list-inside ml-2") do
             li { "name: field identifier (snake_case)" }
             li { "label: display label" }
-            li { "type: string, select, or richtext" }
+            li { "type: string, select, csr, or richtext" }
+            li { "csr: renders a select of registered active CSRs" }
             li { "required: true/false" }
             li { "options: array of choices (for select type)" }
             li { "has_other: true to add 'Other' option with text input" }

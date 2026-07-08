@@ -7,7 +7,7 @@ csr_feedback:
       required: true
     - name: "csr"
       label: "CSR"
-      type: "string"
+      type: "csr"
       required: true
     - name: "feedback_type"
       label: "Feedback Type"

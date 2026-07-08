@@ -10,7 +10,7 @@ puts "Created admin user (admin@feedbackhub.local / password)"
 FeedbackTemplate.find_or_create_by!(name: "CSR Feedback") do |t|
   t.field_schema = [
     { name: "ticket_number", label: "Ticket #", type: "string", required: true },
-    { name: "csr", label: "CSR", type: "string", required: true },
+    { name: "csr", label: "CSR", type: "csr", required: true },
     { name: "feedback_type", label: "Feedback Type", type: "select",
       options: [ "Invalid Ticket", "Knowledge Gap", "Process Failure", "Other" ],
       has_other: true, required: true },
