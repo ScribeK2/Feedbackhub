@@ -5,6 +5,7 @@ class Csr < ApplicationRecord
 
   scope :active, -> { where(active: true) }
 
+  before_validation :strip_name
   after_update :rewrite_references_after_rename, if: :saved_change_to_name?
 
   # Canonical registry lookup: case-insensitive, whitespace-tolerant.
@@ -62,6 +63,10 @@ class Csr < ApplicationRecord
   end
 
   private
+
+  def strip_name
+    self.name = name.to_s.strip if name
+  end
 
   def rewrite_references_after_rename
     rewrite_references(saved_change_to_name.first)

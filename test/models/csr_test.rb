@@ -28,6 +28,12 @@ class CsrTest < ActiveSupport::TestCase
     assert_equal csrs(:jane_doe), Csr.lookup("  jane DOE ")
   end
 
+  test "strips surrounding whitespace from name" do
+    csr = Csr.create!(name: "  Priya Patel  ")
+    assert_equal "Priya Patel", csr.name
+    assert_equal csr, Csr.lookup("priya patel")
+  end
+
   test "lookup returns nil for blank or unknown names" do
     assert_nil Csr.lookup(nil)
     assert_nil Csr.lookup("")

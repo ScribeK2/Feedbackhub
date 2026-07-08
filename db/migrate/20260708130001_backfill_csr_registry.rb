@@ -18,17 +18,19 @@ class BackfillCsrRegistry < ActiveRecord::Migration[8.1]
     latest_variant = {}
 
     MigrationSubmission.where.not(csr_name: [ nil, "" ]).order(:created_at).each do |submission|
-      key = submission.csr_name.downcase
-      variant_counts[key][submission.csr_name] += 1
-      latest_variant[key] = submission.csr_name
+      name = submission.csr_name.strip
+      key = name.downcase
+      variant_counts[key][name] += 1
+      latest_variant[key] = name
     end
 
     MigrationMembership.order(:created_at).each do |membership|
-      key = membership.csr_name.downcase
+      name = membership.csr_name.strip
+      key = name.downcase
       # Register the identity without letting membership casing outvote
       # submission casing; only membership-only names contribute a variant.
-      variant_counts[key][membership.csr_name] += 0
-      latest_variant[key] ||= membership.csr_name
+      variant_counts[key][name] += 0
+      latest_variant[key] ||= name
     end
 
     canonical = {}
@@ -43,7 +45,7 @@ class BackfillCsrRegistry < ActiveRecord::Migration[8.1]
     end
 
     MigrationSubmission.where.not(csr_name: [ nil, "" ]).find_each do |submission|
-      name = canonical.fetch(submission.csr_name.downcase)
+      name = canonical.fetch(submission.csr_name.strip.downcase)
       next if submission.csr_name == name && submission.data["csr"] == name
 
       data = submission.data
@@ -52,7 +54,7 @@ class BackfillCsrRegistry < ActiveRecord::Migration[8.1]
     end
 
     MigrationMembership.find_each do |membership|
-      name = canonical.fetch(membership.csr_name.downcase)
+      name = canonical.fetch(membership.csr_name.strip.downcase)
       membership.update_columns(csr_name: name) unless membership.csr_name == name
     end
   end
