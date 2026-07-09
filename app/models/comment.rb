@@ -11,6 +11,8 @@ class Comment < ApplicationRecord
   after_create_commit :subscribe_author
   after_create_commit :notify_recipients
   after_create_commit :broadcast_comment
+  after_update_commit :broadcast_comment_update
+  after_destroy_commit :broadcast_comment_removal
 
   def notification_headline
     "#{author.name} commented on feedback for #{feedback_submission.csr_label}"
@@ -18,6 +20,10 @@ class Comment < ApplicationRecord
 
   def notification_body
     body
+  end
+
+  def edited?
+    updated_at > created_at
   end
 
   private
@@ -39,5 +45,16 @@ class Comment < ApplicationRecord
     broadcast_append_to "feedback_submission_comments:#{feedback_submission_id}",
       target: "comments_list_#{feedback_submission_id}",
       html: ApplicationController.render(Comments::CommentComponent.new(comment: self), layout: false)
+  end
+
+  def broadcast_comment_update
+    broadcast_replace_to "feedback_submission_comments:#{feedback_submission_id}",
+      target: "comment_#{id}",
+      html: ApplicationController.render(Comments::CommentComponent.new(comment: self), layout: false)
+  end
+
+  def broadcast_comment_removal
+    broadcast_remove_to "feedback_submission_comments:#{feedback_submission_id}",
+      target: "comment_#{id}"
   end
 end
