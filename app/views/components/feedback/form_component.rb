@@ -16,10 +16,10 @@ module Feedback
       Card :base_100, class: "shadow-xl max-w-4xl mx-auto" do |card|
         card.body do
           card.title class: "text-2xl mb-6" do
-            plain "Submit Feedback"
+            plain @submission.persisted? ? "Edit Feedback" : "Submit Feedback"
           end
 
-          render_template_selector
+          render_template_selector unless @submission.persisted?
           render_form_frame
         end
       end
@@ -70,7 +70,7 @@ module Feedback
     def render_dynamic_form
       form_with(
         model: @submission,
-        url: feedback_index_path,
+        url: @submission.persisted? ? feedback_path(@submission) : feedback_index_path,
         data: { controller: "other-field" }
       ) do |f|
         hidden_field_tag :feedback_template_id, @selected_template.id
@@ -80,7 +80,9 @@ module Feedback
         end
 
         div(class: "form-control mt-6") do
-          Button(:primary, type: :submit) { "Submit Feedback" }
+          Button(:primary, type: :submit) do
+            @submission.persisted? ? "Update Feedback" : "Submit Feedback"
+          end
         end
       end
     end
@@ -99,6 +101,7 @@ module Feedback
           input(
             type: "text",
             name: "data[#{field[:name]}]",
+            value: @submission.data[field[:name]],
             class: "input input-bordered w-full",
             required: field[:required]
           )
@@ -113,6 +116,8 @@ module Feedback
     end
 
     def render_select_field(field)
+      stored = @submission.data[field[:name]]
+
       select(
         name: "data[#{field[:name]}]",
         class: "select select-bordered w-full",
@@ -121,18 +126,23 @@ module Feedback
       ) do
         option(value: "") { "Select..." }
         field[:options]&.each do |opt|
-          option(value: opt) { opt }
+          if opt == stored
+            option(value: opt, selected: true) { opt }
+          else
+            option(value: opt) { opt }
+          end
         end
       end
 
       if field[:has_other]
         div(
-          class: "mt-2 hidden",
+          class: stored == "Other" ? "mt-2" : "mt-2 hidden",
           data: { other_field_target: "input" }
         ) do
           input(
             type: "text",
             name: "data[#{field[:name]}_other]",
+            value: @submission.data["#{field[:name]}_other"],
             placeholder: "Please specify...",
             class: "input input-bordered w-full"
           )
@@ -141,14 +151,22 @@ module Feedback
     end
 
     def render_csr_field(field)
+      stored = @submission.data[field[:name]]
+      names = Csr.active.order(:name).pluck(:name)
+      names = [ stored ] + names unless stored.blank? || names.include?(stored)
+
       select(
         name: "data[#{field[:name]}]",
         class: "select select-bordered w-full",
         required: field[:required]
       ) do
         option(value: "") { "Select..." }
-        Csr.active.order(:name).pluck(:name).each do |name|
-          option(value: name) { name }
+        names.each do |name|
+          if name == stored
+            option(value: name, selected: true) { name }
+          else
+            option(value: name) { name }
+          end
         end
       end
     end
