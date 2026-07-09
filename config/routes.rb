@@ -15,6 +15,8 @@ Rails.application.routes.draw do
     resource :status, only: [ :update ]
   end
 
+  resources :comments, only: [ :show, :edit, :update, :destroy ]
+
   resources :notifications, only: [ :index, :show ] do
     collection do
       post :mark_all_read

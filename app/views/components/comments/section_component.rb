@@ -22,7 +22,7 @@ module Comments
 
         div(id: "comments_list_#{@submission.id}", class: "space-y-3 mb-4") do
           @submission.comments.chronological.includes(:author).each do |comment|
-            render CommentComponent.new(comment: comment)
+            render CommentComponent.new(comment: comment, user: @user)
           end
         end
 
