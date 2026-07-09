@@ -335,4 +335,49 @@ class FeedbackSubmissionTest < ActiveSupport::TestCase
     )
     assert submission.valid?
   end
+
+  test "broadcast_correction replaces the row and card on the global stream" do
+    submission = feedback_submissions(:high_priority)
+
+    streams = capture_turbo_stream_broadcasts("feedback_submissions") do
+      submission.broadcast_correction("Jane Doe")
+    end
+    targets = streams.select { |s| s["action"] == "replace" }.map { |s| s["target"] }
+    assert_includes targets, "submission_row_#{submission.id}"
+    assert_includes targets, "submission_card_#{submission.id}"
+  end
+
+  test "broadcast_correction refreshes the previous CSR's manager dashboard" do
+    manager = users(:manager) # team includes "Jane Doe"
+    submission = feedback_submissions(:high_priority)
+    submission.data["csr"] = "Off Team"
+    submission.save!
+
+    streams = capture_turbo_stream_broadcasts("dashboard:#{manager.id}") do
+      submission.broadcast_correction("Jane Doe")
+    end
+    assert streams.any? { |s| s["target"] == "metric_cards" },
+      "expected the previous CSR's manager to get a metric_cards refresh"
+  end
+
+  test "destroying a submission broadcasts row and card removal" do
+    submission = feedback_submissions(:high_priority)
+
+    streams = capture_turbo_stream_broadcasts("feedback_submissions") do
+      submission.destroy
+    end
+    remove_targets = streams.select { |s| s["action"] == "remove" }.map { |s| s["target"] }
+    assert_includes remove_targets, "submission_row_#{submission.id}"
+    assert_includes remove_targets, "submission_card_#{submission.id}"
+  end
+
+  test "destroying a submission refreshes the dashboard metric cards" do
+    submission = feedback_submissions(:low_priority)
+
+    streams = capture_turbo_stream_broadcasts("dashboard") do
+      submission.destroy
+    end
+    assert streams.any? { |s| s["target"] == "metric_cards" },
+      "expected a metric_cards refresh on the global dashboard stream"
+  end
 end
