@@ -6,7 +6,7 @@ Rails.application.routes.draw do
   post "login", to: "sessions#create"
   delete "logout", to: "sessions#destroy"
 
-  resources :feedback, only: [ :index, :new, :create, :show ] do
+  resources :feedback, only: [ :index, :new, :create, :show, :edit, :update, :destroy ] do
     collection do
       get :form
     end
