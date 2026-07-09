@@ -69,4 +69,58 @@ class ArticlesControllerTest < ActionDispatch::IntegrationTest
     get articles_path
     assert_redirected_to login_path
   end
+
+  test "author can edit own article" do
+    get edit_article_path(articles(:policy_doc))
+    assert_response :success
+    assert_match "Edit Article", response.body
+  end
+
+  test "non-author cannot edit article" do
+    get edit_article_path(articles(:dns_guide))
+    assert_redirected_to article_path(articles(:dns_guide))
+  end
+
+  test "admin can edit any article" do
+    delete logout_path
+    sign_in_as_admin
+    get edit_article_path(articles(:policy_doc))
+    assert_response :success
+  end
+
+  test "author can update own article and retag it" do
+    patch article_path(articles(:policy_doc)), params: {
+      article: { title: "Updated Policy" },
+      tag_names: "policy, revised"
+    }
+    assert_redirected_to article_path(articles(:policy_doc))
+    article = articles(:policy_doc).reload
+    assert_equal "Updated Policy", article.title
+    assert_equal %w[policy revised].sort, article.tags.pluck(:name).sort
+  end
+
+  test "update with empty tag_names clears tags" do
+    patch article_path(articles(:policy_doc)), params: {
+      article: { title: "Escalation Policy" },
+      tag_names: ""
+    }
+    assert_empty articles(:policy_doc).reload.tags
+  end
+
+  test "update with blank title re-renders form and keeps tags" do
+    patch article_path(articles(:policy_doc)), params: {
+      article: { title: "" },
+      tag_names: "changed"
+    }
+    assert_response :unprocessable_entity
+    article = articles(:policy_doc).reload
+    assert_equal "Escalation Policy", article.title
+    assert_equal %w[policy], article.tags.pluck(:name)
+  end
+
+  test "non-author cannot update article" do
+    patch article_path(articles(:dns_guide)), params: { article: { title: "Hijacked" } }
+    assert_redirected_to article_path(articles(:dns_guide))
+    assert_equal "DNS Troubleshooting Guide", articles(:dns_guide).reload.title
+  end
 end

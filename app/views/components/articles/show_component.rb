@@ -35,13 +35,18 @@ module Articles
             end
           end
         end
-        if current_user&.admin?
-          form(action: article_path(@article), method: "post") do
-            input(type: "hidden", name: "_method", value: "delete")
-            input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
-            Button :error, :outline, :sm, type: "submit",
-              data: { turbo_confirm: "Delete this article?" } do
-              "Delete"
+        div(class: "flex gap-2") do
+          if current_user&.admin? || @article.author == current_user
+            a(href: edit_article_path(@article), class: "btn btn-outline btn-sm") { "Edit" }
+          end
+          if current_user&.admin?
+            form(action: article_path(@article), method: "post") do
+              input(type: "hidden", name: "_method", value: "delete")
+              input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
+              Button :error, :outline, :sm, type: "submit",
+                data: { turbo_confirm: "Delete this article?" } do
+                "Delete"
+              end
             end
           end
         end

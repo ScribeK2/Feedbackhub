@@ -23,7 +23,7 @@ Rails.application.routes.draw do
 
   get "settings/subscriptions", to: "settings#subscriptions", as: :settings_subscriptions
 
-  resources :articles, only: [ :index, :show, :new, :create, :destroy ]
+  resources :articles, only: [ :index, :show, :new, :create, :edit, :update, :destroy ]
   resources :updates, only: [ :index, :create, :update, :destroy ]
   resources :tags, only: [ :index ]
   resources :tools, only: [ :index ]
