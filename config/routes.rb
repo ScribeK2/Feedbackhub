@@ -45,6 +45,11 @@ Rails.application.routes.draw do
         post :merge
       end
     end
+    resources :tags, only: [ :index, :edit, :update, :destroy ] do
+      member do
+        post :merge
+      end
+    end
   end
 
   # Healthcheck endpoint for ONCE deployment
