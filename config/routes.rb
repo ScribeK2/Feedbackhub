@@ -6,7 +6,7 @@ Rails.application.routes.draw do
   post "login", to: "sessions#create"
   delete "logout", to: "sessions#destroy"
 
-  resources :feedback, only: [ :index, :new, :create, :show ] do
+  resources :feedback, only: [ :index, :new, :create, :show, :edit, :update, :destroy ] do
     collection do
       get :form
     end
@@ -14,6 +14,8 @@ Rails.application.routes.draw do
     resource :subscription, only: [ :update ]
     resource :status, only: [ :update ]
   end
+
+  resources :comments, only: [ :show, :edit, :update, :destroy ]
 
   resources :notifications, only: [ :index, :show ] do
     collection do
@@ -23,7 +25,7 @@ Rails.application.routes.draw do
 
   get "settings/subscriptions", to: "settings#subscriptions", as: :settings_subscriptions
 
-  resources :articles, only: [ :index, :show, :new, :create, :destroy ]
+  resources :articles, only: [ :index, :show, :new, :create, :edit, :update, :destroy ]
   resources :updates, only: [ :index, :create, :update, :destroy ]
   resources :tags, only: [ :index ]
   resources :tools, only: [ :index ]
@@ -39,6 +41,11 @@ Rails.application.routes.draw do
     resources :templates
     resources :users
     resources :csrs, except: [ :show ] do
+      member do
+        post :merge
+      end
+    end
+    resources :tags, only: [ :index, :edit, :update, :destroy ] do
       member do
         post :merge
       end

@@ -99,6 +99,18 @@ module Hub
 
     def render_footer(modal)
       modal.action do
+        if current_user&.admin?
+          a(href: edit_feedback_path(@submission), class: "btn btn-outline btn-sm") { "Edit" }
+          form(action: feedback_path(@submission), method: "post", class: "inline") do
+            input(type: "hidden", name: "_method", value: "delete")
+            input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
+            button(
+              type: "submit",
+              class: "btn btn-error btn-outline btn-sm",
+              data: { turbo_confirm: "Delete this feedback? Its comments and status history are removed too." }
+            ) { "Delete" }
+          end
+        end
         modal.close_button { "Close" }
       end
     end

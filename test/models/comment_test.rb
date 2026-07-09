@@ -72,4 +72,34 @@ class CommentTest < ActiveSupport::TestCase
     assert_not Comment.exists?(comment.id)
     assert_not Notification.where(event: comment).exists?
   end
+
+  test "edited? is false for a fresh comment and true after a body change" do
+    comment = @submission.comments.create!(author: @author, body: "Original")
+    assert_not comment.edited?
+
+    comment.update!(body: "Corrected", updated_at: 1.minute.from_now)
+    assert comment.reload.edited?
+  end
+
+  test "updating a comment broadcasts a replace of its DOM node" do
+    comment = @submission.comments.create!(author: @author, body: "Original")
+
+    streams = capture_turbo_stream_broadcasts("feedback_submission_comments:#{@submission.id}") do
+      comment.update!(body: "Corrected")
+    end
+    replace = streams.find { |s| s["action"] == "replace" }
+    assert replace, "expected a replace broadcast"
+    assert_equal "comment_#{comment.id}", replace["target"]
+  end
+
+  test "destroying a comment broadcasts a remove of its DOM node" do
+    comment = @submission.comments.create!(author: @author, body: "Going away")
+
+    streams = capture_turbo_stream_broadcasts("feedback_submission_comments:#{@submission.id}") do
+      comment.destroy
+    end
+    remove = streams.find { |s| s["action"] == "remove" }
+    assert remove, "expected a remove broadcast"
+    assert_equal "comment_#{comment.id}", remove["target"]
+  end
 end

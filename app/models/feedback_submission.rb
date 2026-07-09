@@ -45,6 +45,7 @@ class FeedbackSubmission < ApplicationRecord
   scope :with_status, ->(status) { where(status: status) }
 
   after_create_commit :broadcast_updates
+  after_destroy_commit :broadcast_removal
 
   # Users notified about new comments: explicit subscribers plus managers whose
   # team includes this CSR, minus explicit opt-outs and the comment author.
@@ -78,6 +79,21 @@ class FeedbackSubmission < ApplicationRecord
     change
   end
 
+  # Re-renders row, card, and metric cards after an admin correction. Managers
+  # of the previous CSR are included so their dashboards stop counting a moved
+  # item; rows they can no longer see stay until reload (accepted limitation).
+  def broadcast_correction(previous_csr_name)
+    row = ApplicationController.render(Feedback::RowComponent.new(submission: self), layout: false)
+    card = ApplicationController.render(Feedback::CardComponent.new(submission: self), layout: false)
+
+    each_correction_audience(previous_csr_name) do |manager, scope|
+      broadcast_replace_to stream_name("feedback_submissions", manager), target: "submission_row_#{id}", html: row
+      broadcast_replace_to stream_name("feedback_submissions", manager), target: "submission_card_#{id}", html: card
+      broadcast_replace_to stream_name("dashboard", manager), target: "metric_cards",
+        html: ApplicationController.render(Dashboard::MetricCardsFragment.new(scope: scope), layout: false)
+    end
+  end
+
   # Managers may triage feedback for CSRs on their team; admins may triage anything.
   def triagable_by?(user)
     return false unless user
@@ -108,6 +124,26 @@ class FeedbackSubmission < ApplicationRecord
 
   def stream_name(base, manager)
     manager ? "#{base}:#{manager.id}" : base
+  end
+
+  # Like each_broadcast_audience, but also covers managers of the CSR the
+  # submission was assigned to before a correction.
+  def each_correction_audience(previous_csr_name)
+    yield nil, FeedbackSubmission.all
+    manager_ids = User.managers_for(csr_name).pluck(:id) |
+      User.managers_for(previous_csr_name).pluck(:id)
+    User.where(id: manager_ids).find_each do |manager|
+      yield manager, FeedbackSubmission.for_csrs(manager.team_csr_names)
+    end
+  end
+
+  def broadcast_removal
+    each_broadcast_audience do |manager, scope|
+      broadcast_remove_to stream_name("feedback_submissions", manager), target: "submission_row_#{id}"
+      broadcast_remove_to stream_name("feedback_submissions", manager), target: "submission_card_#{id}"
+      broadcast_replace_to stream_name("dashboard", manager), target: "metric_cards",
+        html: ApplicationController.render(Dashboard::MetricCardsFragment.new(scope: scope), layout: false)
+    end
   end
 
   def broadcast_updates

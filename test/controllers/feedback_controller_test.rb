@@ -203,4 +203,105 @@ class FeedbackControllerTest < ActionDispatch::IntegrationTest
       assert_select "option[value='Former Employee']", false
     end
   end
+
+  test "non-admin cannot edit feedback" do
+    sign_in_as_user
+    get edit_feedback_path(feedback_submissions(:high_priority))
+    assert_redirected_to root_path
+  end
+
+  test "admin edit renders the prefilled form" do
+    sign_in_as_admin
+    get edit_feedback_path(feedback_submissions(:high_priority))
+    assert_response :success
+    assert_match 'value="TK-001"', response.body
+    assert_match "Edit Feedback", response.body
+  end
+
+  test "admin can correct the CSR and grouping fields re-sync" do
+    sign_in_as_admin
+    submission = feedback_submissions(:high_priority)
+
+    patch feedback_path(submission), params: {
+      feedback_template_id: submission.feedback_template_id,
+      data: {
+        ticket_number: "TK-001",
+        csr: "Test CSR",
+        feedback_type: "Knowledge Gap",
+        impact: "Resolution Time",
+        priority: "Medium",
+        submitted_by: "John Smith"
+      }
+    }
+    assert_redirected_to feedback_index_path
+    submission.reload
+    assert_equal "Test CSR", submission.csr_name
+    assert_equal "Test CSR", submission.data["csr"]
+    assert_equal "Medium", submission.priority
+  end
+
+  test "update with an unregistered CSR re-renders the form" do
+    sign_in_as_admin
+    submission = feedback_submissions(:high_priority)
+
+    patch feedback_path(submission), params: {
+      feedback_template_id: submission.feedback_template_id,
+      data: {
+        ticket_number: "TK-001",
+        csr: "Nobody Registered",
+        feedback_type: "Knowledge Gap",
+        impact: "Resolution Time",
+        priority: "High",
+        submitted_by: "John Smith"
+      }
+    }
+    assert_response :unprocessable_entity
+    assert_equal "Jane Doe", feedback_submissions(:high_priority).reload.csr_name
+  end
+
+  test "non-admin cannot update feedback" do
+    sign_in_as_user
+    patch feedback_path(feedback_submissions(:high_priority)), params: {
+      data: { csr: "Test CSR" }
+    }
+    assert_redirected_to root_path
+    assert_equal "Jane Doe", feedback_submissions(:high_priority).reload.csr_name
+  end
+
+  test "admin can destroy feedback with its dependents" do
+    sign_in_as_admin
+    submission = feedback_submissions(:high_priority)
+    submission.comments.create!(author: users(:regular), body: "Will cascade")
+
+    assert_difference [ "FeedbackSubmission.count", "Comment.count" ], -1 do
+      delete feedback_path(submission)
+    end
+    assert_redirected_to feedback_index_path
+  end
+
+  test "non-admin cannot destroy feedback" do
+    sign_in_as_user
+    assert_no_difference "FeedbackSubmission.count" do
+      delete feedback_path(feedback_submissions(:high_priority))
+    end
+    assert_redirected_to root_path
+  end
+
+  test "failed create re-renders the form with entered values" do
+    sign_in_as_user
+    post feedback_index_path, params: {
+      feedback_template_id: feedback_templates(:csr_feedback).id,
+      data: {
+        ticket_number: "TK-999",
+        csr: "Nobody Registered",
+        feedback_type: "Knowledge Gap",
+        impact: "Resolution Time",
+        priority: "High",
+        submitted_by: "Prefill Check"
+      }
+    }
+    assert_response :unprocessable_entity
+    assert_match 'value="TK-999"', response.body
+    assert_match 'value="Prefill Check"', response.body
+  end
 end

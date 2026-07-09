@@ -1,4 +1,7 @@
 class FeedbackController < ApplicationController
+  before_action :require_admin, only: [ :edit, :update, :destroy ]
+  before_action :set_submission, only: [ :edit, :update, :destroy ]
+
   def index
     @submissions = team_scoped(FeedbackSubmission.includes(:feedback_template, status_changes: :actor)).order(created_at: :desc)
     @submissions = @submissions.where(csr_name: params[:csr]) if params[:csr].present?
@@ -60,6 +63,40 @@ class FeedbackController < ApplicationController
     render Hub::SubmissionModalComponent.new(submission: @submission, open: true)
   end
 
+  def edit
+    render Feedback::FormComponent.new(
+      templates: [],
+      selected_template: @submission.feedback_template,
+      submission: @submission
+    )
+  end
+
+  def update
+    template = @submission.feedback_template
+    previous_csr = @submission.csr_name
+    @submission.data = submission_data(template)
+
+    if params[:feedback_submission]&.key?(:feedback_details)
+      @submission.feedback_details = params[:feedback_submission][:feedback_details]
+    end
+
+    if @submission.save
+      @submission.broadcast_correction(previous_csr)
+      redirect_to feedback_index_path, notice: "Feedback updated."
+    else
+      render Feedback::FormComponent.new(
+        templates: [],
+        selected_template: template,
+        submission: @submission
+      ), status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    @submission.destroy
+    redirect_to feedback_index_path, notice: "Feedback deleted."
+  end
+
   def form
     @templates = FeedbackTemplate.all
     @selected_template = FeedbackTemplate.find_by(id: params[:template_id])
@@ -74,6 +111,10 @@ class FeedbackController < ApplicationController
   end
 
   private
+
+  def set_submission
+    @submission = FeedbackSubmission.find(params[:id])
+  end
 
   def submission_data(template)
     allowed_keys = template.field_schema.flat_map do |field|
