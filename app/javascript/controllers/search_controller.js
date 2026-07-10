@@ -18,7 +18,9 @@ export default class extends Controller {
       })
         .then(r => r.text())
         .then(html => {
-          this.resultsTarget.innerHTML = html
+          const doc = new DOMParser().parseFromString(html, "text/html")
+          const template = doc.querySelector("turbo-stream template")
+          this.resultsTarget.innerHTML = template ? template.innerHTML : html
           this.resultsTarget.classList.remove("hidden")
         })
     }, 300)
