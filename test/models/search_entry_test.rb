@@ -71,6 +71,6 @@ class SearchEntryTest < ActiveSupport::TestCase
     best = build_entry(content: "refund refund refund")
     results = SearchEntry.matching_ranked("refund", parent_type: "FeedbackSubmission").to_a
     assert_equal best.id, results.first.id
-    assert_includes results.first.snippet, "refund"
+    assert_includes results.first.snippet, "#{SearchEntry::SNIPPET_START}refund#{SearchEntry::SNIPPET_END}"
   end
 end
