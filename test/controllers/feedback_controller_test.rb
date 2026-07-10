@@ -304,4 +304,67 @@ class FeedbackControllerTest < ActionDispatch::IntegrationTest
     assert_match 'value="TK-999"', response.body
     assert_match 'value="Prefill Check"', response.body
   end
+
+  test "index filters by feedback_type" do
+    get feedback_index_path(feedback_type: "Knowledge Gap")
+    assert_response :success
+    assert_match "TK-001", response.body
+    assert_no_match "TK-002", response.body
+  end
+
+  test "index filters by date range" do
+    FeedbackSubmission.create!(
+      feedback_template: feedback_templates(:csr_feedback),
+      created_at: 100.days.ago, updated_at: 100.days.ago,
+      data: {
+        "ticket_number" => "TK-ANCIENT", "csr" => "Jane Doe", "feedback_type" => "Knowledge Gap",
+        "impact" => "Resolution Time", "priority" => "High", "submitted_by" => "Tester"
+      }
+    )
+    get feedback_index_path(start: 7.days.ago.to_date.iso8601, end: Date.current.iso8601)
+    assert_response :success
+    assert_match "TK-001", response.body
+    assert_no_match "TK-ANCIENT", response.body
+  end
+
+  test "index combines csr, priority, and date range" do
+    get feedback_index_path(
+      csr: "Jane Doe", priority: "High",
+      start: 7.days.ago.to_date.iso8601, end: Date.current.iso8601
+    )
+    assert_response :success
+    assert_match "TK-001", response.body   # High, Jane Doe, recent
+    assert_no_match "TK-002", response.body # Low — excluded by priority
+  end
+
+  test "index ignores garbage dates" do
+    get feedback_index_path(start: "not-a-date", end: "also-nope")
+    assert_response :success
+    assert_match "TK-001", response.body
+    assert_match "TK-002", response.body
+  end
+
+  test "index ignores an inverted date range" do
+    get feedback_index_path(start: Date.current.iso8601, end: 7.days.ago.to_date.iso8601)
+    assert_response :success
+    assert_match "TK-001", response.body
+    assert_match "TK-002", response.body
+  end
+
+  test "index filter bar renders date inputs and type select" do
+    get feedback_index_path
+    assert_response :success
+    assert_select "input[type=date][name=start]"
+    assert_select "input[type=date][name=end]"
+    assert_select "select[name=feedback_type]" do
+      assert_select "option", text: "Knowledge Gap"   # rendered as-is, not "Knowledge gap"
+      assert_select "option", text: "Process Failure"
+    end
+  end
+
+  test "index Clear button appears for a date-only filter" do
+    get feedback_index_path(start: 7.days.ago.to_date.iso8601, end: Date.current.iso8601)
+    assert_response :success
+    assert_select "a", text: "Clear"
+  end
 end
