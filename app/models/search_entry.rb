@@ -5,10 +5,19 @@
 # a search hit resolves to. The search_entries_fts virtual table shadows
 # this table via SQL triggers; `content` is always plain text.
 class SearchEntry < ApplicationRecord
-  SNIPPET_START = ""
-  SNIPPET_END = ""
+  SNIPPET_START = ""
+  SNIPPET_END = ""
+
+  UNIT_MODELS = -> { [ FeedbackSubmission, Comment, StatusChange, Article ] }
 
   validates :parent_type, :parent_id, :unit_type, :unit_id, :content, presence: true
+
+  # Truncate and reindex the whole corpus (the FTS shadow follows via
+  # triggers). Drift remedy and backfill entry point; safe to re-run.
+  def self.rebuild!
+    delete_all
+    UNIT_MODELS.call.each { |model| model.find_each(&:sync_search_entry) }
+  end
 
   scope :matching, ->(q, parent_type:) {
     fts = sanitize_fts_query(q)

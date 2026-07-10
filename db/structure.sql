@@ -129,6 +129,7 @@ CREATE TRIGGER search_entries_au AFTER UPDATE ON search_entries BEGIN
   INSERT INTO search_entries_fts(rowid, content) VALUES (new.id, new.content);
 END;
 INSERT INTO "schema_migrations" (version) VALUES
+('20260710190618'),
 ('20260710145708'),
 ('20260708130002'),
 ('20260708130001'),

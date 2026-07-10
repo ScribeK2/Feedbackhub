@@ -73,4 +73,28 @@ class SearchEntryTest < ActiveSupport::TestCase
     assert_equal best.id, results.first.id
     assert_includes results.first.snippet, "#{SearchEntry::SNIPPET_START}refund#{SearchEntry::SNIPPET_END}"
   end
+
+  # --- rebuild! ---
+
+  test "rebuild! indexes fixture rows that bypassed callbacks" do
+    assert_nil SearchEntry.find_by(unit_type: "FeedbackSubmission", unit_id: feedback_submissions(:high_priority).id)
+    SearchEntry.rebuild!
+    entry = SearchEntry.find_by(unit_type: "FeedbackSubmission", unit_id: feedback_submissions(:high_priority).id)
+    assert_includes entry.content, "TK-001"
+  end
+
+  test "rebuild! converges from drifted state and is idempotent" do
+    SearchEntry.rebuild!
+    drifted = SearchEntry.find_by(unit_type: "FeedbackSubmission", unit_id: feedback_submissions(:high_priority).id)
+    drifted.update!(content: "stale garbage")
+    SearchEntry.create!(parent_type: "FeedbackSubmission", parent_id: 0, unit_type: "Comment", unit_id: 999_999, content: "orphan")
+
+    SearchEntry.rebuild!
+    first_pass = SearchEntry.order(:unit_type, :unit_id).pluck(:unit_type, :unit_id, :content)
+    assert_nil SearchEntry.find_by(unit_id: 999_999)
+    assert_includes SearchEntry.find_by(unit_type: "FeedbackSubmission", unit_id: feedback_submissions(:high_priority).id).content, "TK-001"
+
+    SearchEntry.rebuild!
+    assert_equal first_pass, SearchEntry.order(:unit_type, :unit_id).pluck(:unit_type, :unit_id, :content)
+  end
 end
