@@ -1,4 +1,6 @@
 class FeedbackController < ApplicationController
+  include DateRangeParams
+
   before_action :require_admin, only: [ :edit, :update, :destroy ]
   before_action :set_submission, only: [ :edit, :update, :destroy ]
 
@@ -9,10 +11,17 @@ class FeedbackController < ApplicationController
     @submissions = @submissions.search(params[:q]) if params[:q].present?
     @submissions = @submissions.with_status(params[:status]) if params[:status].present?
     @submissions = @submissions.by_priority(params[:priority]) if params[:priority].present?
+    @submissions = @submissions.by_feedback_type(params[:feedback_type]) if params[:feedback_type].present?
+    range = date_range_from(params[:start], params[:end])
+    @submissions = @submissions.where(created_at: range) if range
 
     render Feedback::IndexComponent.new(
       submissions: @submissions,
-      filters: { q: params[:q], csr: params[:csr], submitted_by: params[:submitted_by], status: params[:status], priority: params[:priority] }
+      filters: {
+        q: params[:q], csr: params[:csr], submitted_by: params[:submitted_by],
+        status: params[:status], priority: params[:priority],
+        feedback_type: params[:feedback_type], start: params[:start], end: params[:end]
+      }
     )
   end
 
