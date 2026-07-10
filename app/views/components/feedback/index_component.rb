@@ -78,6 +78,9 @@ module Feedback
 
           render_filter_select("Status", "status", FeedbackSubmission::STATUSES, @filters[:status])
           render_filter_select("Priority", "priority", %w[High Medium Low], @filters[:priority])
+          render_filter_select("Type", "feedback_type", feedback_type_options, @filters[:feedback_type], capitalize: false)
+          render_date_filter("Start", "start", @filters[:start])
+          render_date_filter("End", "end", @filters[:end])
 
           div(class: "form-control") do
             Button :ghost, :sm, type: "submit" do
@@ -138,7 +141,7 @@ module Feedback
       end
     end
 
-    def render_filter_select(label_text, name, values, current)
+    def render_filter_select(label_text, name, values, current, capitalize: true)
       div(class: "form-control") do
         label(class: "label") do
           span(class: "label-text text-sm") { label_text }
@@ -146,10 +149,29 @@ module Feedback
         select(name: name, class: "select select-bordered select-sm", data: { filter_target: "input" }) do
           option(value: "", selected: current.blank?) { "All" }
           values.each do |value|
-            option(value: value, selected: current == value) { value.capitalize }
+            option(value: value, selected: current == value) { capitalize ? value.capitalize : value }
           end
         end
       end
+    end
+
+    def render_date_filter(label_text, name, current)
+      div(class: "form-control") do
+        label(class: "label") do
+          span(class: "label-text text-sm") { label_text }
+        end
+        input(
+          type: "date",
+          name: name,
+          value: current,
+          class: "input input-bordered input-sm",
+          data: { filter_target: "input" }
+        )
+      end
+    end
+
+    def feedback_type_options
+      FeedbackSubmission.where.not(feedback_type: nil).distinct.pluck(:feedback_type).sort
     end
   end
 end

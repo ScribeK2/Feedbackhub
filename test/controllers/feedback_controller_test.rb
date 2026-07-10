@@ -350,4 +350,21 @@ class FeedbackControllerTest < ActionDispatch::IntegrationTest
     assert_match "TK-001", response.body
     assert_match "TK-002", response.body
   end
+
+  test "index filter bar renders date inputs and type select" do
+    get feedback_index_path
+    assert_response :success
+    assert_select "input[type=date][name=start]"
+    assert_select "input[type=date][name=end]"
+    assert_select "select[name=feedback_type]" do
+      assert_select "option", text: "Knowledge Gap"   # rendered as-is, not "Knowledge gap"
+      assert_select "option", text: "Process Failure"
+    end
+  end
+
+  test "index Clear button appears for a date-only filter" do
+    get feedback_index_path(start: 7.days.ago.to_date.iso8601, end: Date.current.iso8601)
+    assert_response :success
+    assert_select "a", text: "Clear"
+  end
 end
