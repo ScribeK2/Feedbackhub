@@ -1,4 +1,6 @@
 class ScorecardsController < ApplicationController
+  include DateRangeParams
+
   before_action :require_manager_or_admin
 
   def index
@@ -47,17 +49,6 @@ class ScorecardsController < ApplicationController
   end
 
   def requested_range
-    start_date = parse_date(params[:start])
-    end_date = parse_date(params[:end])
-    return ScorecardReport.default_range unless start_date && end_date
-    return ScorecardReport.default_range if start_date > end_date
-
-    start_date.beginning_of_day..end_date.end_of_day
-  end
-
-  def parse_date(value)
-    Date.parse(value.to_s)
-  rescue ArgumentError, TypeError
-    nil
+    date_range_from(params[:start], params[:end]) || ScorecardReport.default_range
   end
 end

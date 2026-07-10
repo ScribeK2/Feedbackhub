@@ -92,4 +92,27 @@ class ScorecardsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match "2 open", response.body # Jane Doe fixtures: TK-001 + TK-002, both open
   end
+
+  test "show honors explicit start and end params" do
+    FeedbackSubmission.create!(
+      feedback_template: feedback_templates(:csr_feedback),
+      created_at: 200.days.ago, updated_at: 200.days.ago,
+      data: {
+        "ticket_number" => "TK-OLD-1", "csr" => "Jane Doe", "feedback_type" => "Knowledge Gap",
+        "impact" => "Resolution Time", "priority" => "Low", "submitted_by" => "Tester"
+      }
+    )
+    sign_in_as_manager
+    get scorecard_path(csr: "Jane Doe", start: 205.days.ago.to_date.iso8601, end: 195.days.ago.to_date.iso8601)
+    assert_response :success
+    # Only the 200-day-old submission is in the window; the 2 recent fixtures are not.
+    assert_match ">1<", response.body # total_count of 1 in the volume panel
+  end
+
+  test "show falls back to the default range on inverted dates" do
+    sign_in_as_manager
+    get scorecard_path(csr: "Jane Doe", start: Date.current.iso8601, end: 10.days.ago.to_date.iso8601)
+    assert_response :success
+    assert_match ">2<", response.body # default 30-day window: both Jane Doe fixtures
+  end
 end
