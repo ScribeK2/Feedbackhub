@@ -13,7 +13,7 @@ module Search
           # Empty — nothing to show
         elsif @results.empty?
           div(class: "p-4 text-sm text-base-content/60") do
-            plain "No results for \"#{@query}\""
+            plain "No results found"
           end
         else
           div(class: "divide-y divide-base-300") do
@@ -28,13 +28,13 @@ module Search
     def render_result(result)
       case result[:type]
       when :feedback
-        render_feedback_result(result[:record])
+        render_feedback_result(result[:record]) { render_snippet(result) }
       when :article
-        render_article_result(result[:record])
+        render_article_result(result[:record]) { render_snippet(result) }
       end
     end
 
-    def render_feedback_result(submission)
+    def render_feedback_result(submission, &block)
       a(href: feedback_path(submission), class: "block p-3 hover:bg-base-200 transition-colors") do
         div(class: "flex items-center gap-2") do
           Badge(:primary, :xs) { "Feedback" }
@@ -45,10 +45,11 @@ module Search
         p(class: "text-xs text-base-content/60 mt-1") do
           plain "Ticket: #{submission.ticket_number || '—'} | #{submission.priority || '—'} priority"
         end
+        yield if block
       end
     end
 
-    def render_article_result(article)
+    def render_article_result(article, &block)
       a(href: article_path(article), class: "block p-3 hover:bg-base-200 transition-colors") do
         div(class: "flex items-center gap-2") do
           Badge(:secondary, :xs) { "Article" }
@@ -56,6 +57,28 @@ module Search
         end
         p(class: "text-xs text-base-content/60 mt-1") do
           plain "by #{article.author.name}"
+        end
+        yield if block
+      end
+    end
+
+    SENTINEL_SPLIT = /(#{SearchEntry::SNIPPET_START}|#{SearchEntry::SNIPPET_END})/
+
+    def render_snippet(result)
+      return if result[:snippet].blank?
+
+      p(class: "text-xs text-base-content/70 mt-1 truncate") do
+        if result[:source]
+          span(class: "italic text-base-content/50") { "#{result[:source]}: " }
+        end
+        in_mark = false
+        result[:snippet].split(SENTINEL_SPLIT).each do |part|
+          case part
+          when SearchEntry::SNIPPET_START then in_mark = true
+          when SearchEntry::SNIPPET_END then in_mark = false
+          else
+            in_mark ? mark(class: "bg-warning/40 rounded px-0.5") { part } : plain(part)
+          end
         end
       end
     end

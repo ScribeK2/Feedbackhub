@@ -5,8 +5,8 @@
 # a search hit resolves to. The search_entries_fts virtual table shadows
 # this table via SQL triggers; `content` is always plain text.
 class SearchEntry < ApplicationRecord
-  SNIPPET_START = ""
-  SNIPPET_END = ""
+  SNIPPET_START = "\u0001"
+  SNIPPET_END = "\u0002"
 
   UNIT_MODELS = -> { [ FeedbackSubmission, Comment, StatusChange, Article ] }
 
