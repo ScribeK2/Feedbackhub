@@ -115,4 +115,31 @@ class ScorecardsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match ">2<", response.body # default 30-day window: both Jane Doe fixtures
   end
+
+  test "scorecard breakdown bars deep-link to the filtered feedback index" do
+    sign_in_as_manager
+    start_param = 30.days.ago.to_date.iso8601
+    end_param = Date.current.iso8601
+    get scorecard_path(csr: "Jane Doe", start: start_param, end: end_param)
+    assert_response :success
+
+    body = CGI.unescapeHTML(response.body)
+    # Severity: High has count 1 (TK-001) -> linked with priority param + context
+    assert_includes body, "/feedback?csr=Jane+Doe&end=#{end_param}&priority=High&start=#{start_param}"
+    # Follow-through: open has count 2 -> linked with status param
+    assert_includes body, "/feedback?csr=Jane+Doe&end=#{end_param}&start=#{start_param}&status=open"
+    # Category: Knowledge Gap -> linked with feedback_type param
+    assert_includes body, "/feedback?csr=Jane+Doe&end=#{end_param}&feedback_type=Knowledge+Gap&start=#{start_param}"
+    # Impact: never linked
+    assert_not_includes body, "impact="
+  end
+
+  test "zero-count breakdown rows are not linked" do
+    sign_in_as_manager
+    get scorecard_path(csr: "Jane Doe")
+    body = CGI.unescapeHTML(response.body)
+    # Both Jane Doe fixtures are open -> reviewed/actioned/dismissed have count 0
+    assert_not_includes body, "status=reviewed"
+    assert_not_includes body, "status=actioned"
+  end
 end

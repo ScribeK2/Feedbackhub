@@ -15,9 +15,9 @@ module Scorecards
         else
           render_volume_panel
           div(class: "grid grid-cols-1 lg:grid-cols-3 gap-4") do
-            render BreakdownComponent.new(title: "Severity", counts: @report.severity_counts)
-            render BreakdownComponent.new(title: "Category", counts: @report.category_counts)
-            render BreakdownComponent.new(title: "Follow-through", counts: @report.status_counts)
+            render BreakdownComponent.new(title: "Severity", counts: @report.severity_counts, href_for: index_link(:priority))
+            render BreakdownComponent.new(title: "Category", counts: @report.category_counts, href_for: index_link(:feedback_type))
+            render BreakdownComponent.new(title: "Follow-through", counts: @report.status_counts, href_for: index_link(:status))
             render BreakdownComponent.new(title: "Impact", counts: @report.impact_counts)
           end
           render_recent
@@ -50,6 +50,20 @@ module Scorecards
       div(class: "form-control") do
         label(class: "label") { span(class: "label-text text-xs capitalize") { name } }
         input(type: "date", name: name, value: value.iso8601, class: "input input-bordered input-sm")
+      end
+    end
+
+    # Deep link into the feedback index scoped to this report's CSR and
+    # window plus one dimension (:priority, :status, or :feedback_type),
+    # so the landing list matches the clicked count exactly.
+    def index_link(param)
+      ->(label) do
+        feedback_index_path(
+          csr: @report.csr_name,
+          start: @report.date_range.begin.to_date.iso8601,
+          end: @report.date_range.end.to_date.iso8601,
+          param => label
+        )
       end
     end
 
