@@ -1,4 +1,6 @@
 class Article < ApplicationRecord
+  include SearchIndexable
+
   belongs_to :author, class_name: "User"
   has_many :article_tags, dependent: :destroy
   has_many :tags, through: :article_tags
@@ -14,6 +16,15 @@ class Article < ApplicationRecord
   }
 
   after_create_commit :broadcast_to_dashboard
+
+  def search_parent
+    self
+  end
+
+  def search_content
+    [ title, body.to_plain_text, *tags.reload.pluck(:name) ]
+      .map(&:presence).compact.join("\n")
+  end
 
   private
 
