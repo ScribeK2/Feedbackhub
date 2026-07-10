@@ -71,13 +71,13 @@ class SearchControllerTest < ActionDispatch::IntegrationTest
 
     sign_in_as_manager
     get search_path(q: "TK-OFF"), as: :turbo_stream
-    assert_no_match "TK-OFF", response.body
+    assert_no_match feedback_path(off_team), response.body
 
     get search_path(q: "offteam"), as: :turbo_stream
-    assert_no_match "TK-OFF", response.body
+    assert_no_match feedback_path(off_team), response.body
 
     sign_in_as_admin
     get search_path(q: "TK-OFF"), as: :turbo_stream
-    assert_match "TK-OFF", response.body
+    assert_match feedback_path(off_team), response.body
   end
 end

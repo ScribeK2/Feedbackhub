@@ -13,7 +13,7 @@ module Search
           # Empty — nothing to show
         elsif @results.empty?
           div(class: "p-4 text-sm text-base-content/60") do
-            plain "No results found"
+            plain "No results for \"#{@query}\""
           end
         else
           div(class: "divide-y divide-base-300") do
