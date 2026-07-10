@@ -367,4 +367,14 @@ class FeedbackControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "a", text: "Clear"
   end
+
+  test "index q filter finds submissions by comment text and composes with filters" do
+    SearchEntry.rebuild!
+    Comment.create!(feedback_submission: feedback_submissions(:high_priority),
+      author: users(:regular), body: "waiting on distributor confirmation")
+    get feedback_index_path(q: "distributor", priority: "High")
+    assert_response :success
+    assert_match "TK-001", response.body
+    assert_no_match "TK-002", response.body
+  end
 end

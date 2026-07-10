@@ -9,10 +9,7 @@ class Article < ApplicationRecord
   validates :title, presence: true
 
   scope :search, ->(q) {
-    left_joins(:tags).where(
-      "articles.title LIKE :q OR tags.name LIKE :q",
-      q: "%#{sanitize_sql_like(q)}%"
-    ).distinct
+    where(id: SearchEntry.matching(q, parent_type: "Article").select(:parent_id))
   }
 
   after_create_commit :broadcast_to_dashboard
