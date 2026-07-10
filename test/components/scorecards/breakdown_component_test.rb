@@ -18,4 +18,29 @@ class Scorecards::BreakdownComponentTest < ActiveSupport::TestCase
     ).call
     assert_includes html, "None in this period"
   end
+
+  test "rows link when href_for is given and count is positive" do
+    html = Scorecards::BreakdownComponent.new(
+      title: "Severity", counts: { "High" => 2, "Low" => 1 },
+      href_for: ->(label) { "/feedback?priority=#{label}" }
+    ).call
+    assert_includes html, 'href="/feedback?priority=High"'
+    assert_includes html, 'href="/feedback?priority=Low"'
+  end
+
+  test "zero-count rows do not link even with href_for" do
+    html = Scorecards::BreakdownComponent.new(
+      title: "Severity", counts: { "High" => 2, "Medium" => 0 },
+      href_for: ->(label) { "/feedback?priority=#{label}" }
+    ).call
+    assert_includes html, 'href="/feedback?priority=High"'
+    assert_not_includes html, 'href="/feedback?priority=Medium"'
+  end
+
+  test "no rows link without href_for" do
+    html = Scorecards::BreakdownComponent.new(
+      title: "Impact", counts: { "Client Experience" => 3 }
+    ).call
+    assert_not_includes html, "<a"
+  end
 end
