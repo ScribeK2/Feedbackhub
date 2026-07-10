@@ -113,6 +113,12 @@ class FeedbackSubmissionTest < ActiveSupport::TestCase
     assert results.all? { |s| s.priority == "High" }
   end
 
+  test "by_feedback_type filters on the extracted column" do
+    results = FeedbackSubmission.by_feedback_type("Knowledge Gap")
+    assert_includes results, feedback_submissions(:high_priority)
+    assert_not_includes results, feedback_submissions(:low_priority)
+  end
+
   test "search scope finds by csr_name" do
     results = FeedbackSubmission.search("Jane Doe")
     assert_includes results, feedback_submissions(:high_priority)

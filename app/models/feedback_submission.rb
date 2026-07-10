@@ -17,6 +17,7 @@ class FeedbackSubmission < ApplicationRecord
   after_create :subscribe_submitter
 
   scope :by_priority, ->(p) { where(priority: p) }
+  scope :by_feedback_type, ->(t) { where(feedback_type: t) }
   scope :high_priority, -> { where(priority: "High") }
   scope :medium_priority, -> { where(priority: "Medium") }
   scope :low_priority, -> { where(priority: "Low") }
