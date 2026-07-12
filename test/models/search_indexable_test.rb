@@ -113,4 +113,17 @@ class SearchIndexableTest < ActiveSupport::TestCase
     assert_includes content, "dst-tag"
     assert_not_includes content, "src-tag"
   end
+
+  test "removing a tag from an article resyncs its entry" do
+    article = Article.create!(title: "Shrink piece", author: users(:admin))
+    keep = Tag.create!(name: "keep-tag")
+    drop = Tag.create!(name: "drop-tag")
+    article.tags = [ keep, drop ]
+    assert_includes SearchEntry.find_by(unit_type: "Article", unit_id: article.id).content, "drop-tag"
+
+    article.tags = [ keep ]
+    content = SearchEntry.find_by(unit_type: "Article", unit_id: article.id).content
+    assert_not_includes content, "drop-tag"
+    assert_includes content, "keep-tag"
+  end
 end

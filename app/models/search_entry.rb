@@ -15,8 +15,10 @@ class SearchEntry < ApplicationRecord
   # Truncate and reindex the whole corpus (the FTS shadow follows via
   # triggers). Drift remedy and backfill entry point; safe to re-run.
   def self.rebuild!
-    delete_all
-    UNIT_MODELS.call.each { |model| model.find_each(&:sync_search_entry) }
+    transaction do
+      delete_all
+      UNIT_MODELS.call.each { |model| model.find_each(&:sync_search_entry) }
+    end
   end
 
   scope :matching, ->(q, parent_type:) {
