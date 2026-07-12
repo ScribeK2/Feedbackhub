@@ -120,16 +120,19 @@ class FeedbackSubmissionTest < ActiveSupport::TestCase
   end
 
   test "search scope finds by csr_name" do
+    SearchEntry.rebuild!
     results = FeedbackSubmission.search("Jane Doe")
     assert_includes results, feedback_submissions(:high_priority)
   end
 
   test "search scope finds by ticket_number" do
+    SearchEntry.rebuild!
     results = FeedbackSubmission.search("TK-001")
     assert_includes results, feedback_submissions(:high_priority)
   end
 
   test "search scope returns empty for no match" do
+    SearchEntry.rebuild!
     results = FeedbackSubmission.search("zzz_nonexistent_zzz")
     assert_empty results
   end
@@ -385,5 +388,58 @@ class FeedbackSubmissionTest < ActiveSupport::TestCase
     end
     assert streams.any? { |s| s["target"] == "metric_cards" },
       "expected a metric_cards refresh on the global dashboard stream"
+  end
+
+  test "search finds a submission by comment text" do
+    SearchEntry.rebuild!
+    submission = feedback_submissions(:high_priority)
+    Comment.create!(feedback_submission: submission, author: users(:regular), body: "escalated to warehouse team")
+    results = FeedbackSubmission.search("warehouse")
+    assert_includes results, submission
+    assert_not_includes results, feedback_submissions(:low_priority)
+  end
+
+  test "search finds a submission by status note" do
+    SearchEntry.rebuild!
+    submission = feedback_submissions(:high_priority)
+    submission.transition_to("dismissed", actor: users(:manager), note: "superseded by ticket TK-77")
+    assert_includes FeedbackSubmission.search("superseded"), submission
+  end
+
+  test "search finds a submission by rich-text details" do
+    submission = FeedbackSubmission.create!(
+      feedback_template: feedback_templates(:csr_feedback),
+      feedback_details: "<p>Customer requested a <b>chargeback</b> immediately</p>",
+      data: { "ticket_number" => "TK-RT", "csr" => "Jane Doe", "feedback_type" => "Knowledge Gap",
+              "impact" => "Resolution Time", "priority" => "Low", "submitted_by" => "Rich Text" }
+    )
+    assert_includes FeedbackSubmission.search("chargeback"), submission
+  end
+
+  test "search still matches core columns and stems" do
+    SearchEntry.rebuild!
+    assert_includes FeedbackSubmission.search("TK-001"), feedback_submissions(:high_priority)
+    # porter: "Processes" stems to match "Process Failure"
+    assert_includes FeedbackSubmission.search("processes"), feedback_submissions(:low_priority)
+  end
+
+  test "search composes with other scopes" do
+    SearchEntry.rebuild!
+    assert_includes FeedbackSubmission.search("Jane").by_priority("High"), feedback_submissions(:high_priority)
+    assert_not_includes FeedbackSubmission.search("Jane").by_priority("High"), feedback_submissions(:low_priority)
+  end
+
+  test "search returns none for garbage without raising" do
+    assert_empty FeedbackSubmission.search('"AND (')
+  end
+
+  test "search finds submissions by the new name after a CSR rename" do
+    SearchEntry.rebuild!
+    # Csr rename rewrites every submission (data["csr"] + csr_name), and each
+    # rewrite fires the submission's own sync callback — this pins that chain.
+    # Disjoint new name: prefix-matching would let "Jane" find "Janet".
+    Csr.lookup("Jane Doe").update!(name: "Rebecca Chen")
+    assert_includes FeedbackSubmission.search("Rebecca"), feedback_submissions(:high_priority)
+    assert_empty FeedbackSubmission.search("Jane")
   end
 end

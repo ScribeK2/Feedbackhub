@@ -26,9 +26,15 @@ class Tag < ApplicationRecord
     end
   end
 
+  after_update_commit :resync_article_search_entries, if: :saved_change_to_name?
+
   private
 
   def normalize_name
     self.name = name.to_s.strip.downcase if name
+  end
+
+  def resync_article_search_entries
+    articles.find_each(&:sync_search_entry)
   end
 end

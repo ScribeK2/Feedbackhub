@@ -1,4 +1,6 @@
 class Comment < ApplicationRecord
+  include SearchIndexable
+
   belongs_to :feedback_submission
   belongs_to :author, class_name: "User"
 
@@ -24,6 +26,14 @@ class Comment < ApplicationRecord
 
   def edited?
     updated_at > created_at
+  end
+
+  def search_parent
+    feedback_submission
+  end
+
+  def search_content
+    body
   end
 
   private

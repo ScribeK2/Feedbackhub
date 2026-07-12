@@ -1,4 +1,6 @@
 class FeedbackSubmission < ApplicationRecord
+  include SearchIndexable
+
   STATUSES = %w[open reviewed actioned dismissed].freeze
   CLOSED_STATUSES = %w[actioned dismissed].freeze
 
@@ -27,10 +29,7 @@ class FeedbackSubmission < ApplicationRecord
     where("LOWER(csr_name) IN (?)", names)
   }
   scope :search, ->(q) {
-    where(
-      "csr_name LIKE :q OR submitted_by LIKE :q OR ticket_number LIKE :q OR feedback_type LIKE :q OR data LIKE :q",
-      q: "%#{sanitize_sql_like(q)}%"
-    )
+    where(id: SearchEntry.matching(q, parent_type: "FeedbackSubmission").select(:parent_id))
   }
 
   # Kernel#open makes `scope :open` trip Active Record's dangerous-name guard,
@@ -106,6 +105,18 @@ class FeedbackSubmission < ApplicationRecord
   # Human label for notification/mailer copy.
   def csr_label
     csr_name.presence || "a feedback submission"
+  end
+
+  def search_parent
+    self
+  end
+
+  def search_content
+    [
+      csr_name, submitted_by, ticket_number, feedback_type,
+      *data.values.map(&:to_s),
+      feedback_details.to_plain_text
+    ].map(&:presence).compact.join("\n")
   end
 
   private

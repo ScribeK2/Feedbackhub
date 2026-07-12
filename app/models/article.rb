@@ -1,19 +1,27 @@
 class Article < ApplicationRecord
+  include SearchIndexable
+
   belongs_to :author, class_name: "User"
   has_many :article_tags, dependent: :destroy
-  has_many :tags, through: :article_tags
+  has_many :tags, through: :article_tags, dependent: :destroy
   has_rich_text :body
 
   validates :title, presence: true
 
   scope :search, ->(q) {
-    left_joins(:tags).where(
-      "articles.title LIKE :q OR tags.name LIKE :q",
-      q: "%#{sanitize_sql_like(q)}%"
-    ).distinct
+    where(id: SearchEntry.matching(q, parent_type: "Article").select(:parent_id))
   }
 
   after_create_commit :broadcast_to_dashboard
+
+  def search_parent
+    self
+  end
+
+  def search_content
+    [ title, body.to_plain_text, *tags.reload.pluck(:name) ]
+      .map(&:presence).compact.join("\n")
+  end
 
   private
 

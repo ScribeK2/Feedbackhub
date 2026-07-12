@@ -1,4 +1,6 @@
 class StatusChange < ApplicationRecord
+  include SearchIndexable
+
   ALLOWED_TRANSITIONS = {
     "open" => %w[reviewed actioned dismissed],
     "reviewed" => %w[actioned dismissed],
@@ -30,6 +32,14 @@ class StatusChange < ApplicationRecord
   end
 
   def notification_body
+    note
+  end
+
+  def search_parent
+    feedback_submission
+  end
+
+  def search_content
     note
   end
 

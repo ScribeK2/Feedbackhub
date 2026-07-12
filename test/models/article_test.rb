@@ -37,13 +37,30 @@ class ArticleTest < ActiveSupport::TestCase
   end
 
   test "search scope finds by title" do
+    SearchEntry.rebuild!
     results = Article.search("DNS")
     assert_includes results, articles(:dns_guide)
   end
 
   test "search scope finds by tag name" do
+    SearchEntry.rebuild!
     results = Article.search("networking")
     assert_includes results, articles(:dns_guide)
+  end
+
+  test "search finds an article by body text" do
+    article = Article.create!(title: "Plain title", author: users(:admin),
+      body: "<p>Steps to reconcile a <b>chargeback</b> dispute</p>")
+    assert_includes Article.search("chargeback"), article
+  end
+
+  test "search still finds articles by title and tag name" do
+    SearchEntry.rebuild!
+    article = Article.create!(title: "Onboarding checklist", author: users(:admin))
+    tag = Tag.create!(name: "training")
+    ArticleTag.create!(article: article, tag: tag)
+    assert_includes Article.search("onboarding"), article
+    assert_includes Article.search("training"), article
   end
 
   test "destroying article destroys article_tags" do
