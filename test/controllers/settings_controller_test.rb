@@ -27,4 +27,12 @@ class SettingsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match "No subscriptions", response.body
   end
+
+  test "subscriptions page shows settings tabs" do
+    sign_in_as_user
+    get settings_subscriptions_path
+    assert_response :success
+    assert_select "a.tab", text: "Account"
+    assert_select "a.tab.tab-active", text: "Subscriptions"
+  end
 end
