@@ -12,6 +12,7 @@ class User < ApplicationRecord
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :name, presence: true
   validates :role, presence: true, inclusion: { in: %w[admin user manager] }
+  validates :password, length: { minimum: 8 }, allow_nil: true
 
   def admin?
     role == "admin"

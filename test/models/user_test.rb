@@ -110,4 +110,23 @@ class UserTest < ActiveSupport::TestCase
     assert_includes User.managers_for("jane doe"), users(:manager)
     assert_empty User.managers_for("Nobody")
   end
+
+  test "password shorter than 8 characters is invalid" do
+    user = users(:regular)
+    user.password = "short"
+    assert_not user.valid?
+    assert_includes user.errors[:password], "is too short (minimum is 8 characters)"
+  end
+
+  test "password of 8 or more characters is valid" do
+    user = users(:regular)
+    user.password = "longenough"
+    assert user.valid?
+  end
+
+  test "update that does not touch password is unaffected by length rule" do
+    user = users(:regular)
+    user.name = "Renamed"
+    assert user.valid?
+  end
 end
