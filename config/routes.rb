@@ -23,7 +23,11 @@ Rails.application.routes.draw do
     end
   end
 
-  get "settings/subscriptions", to: "settings#subscriptions", as: :settings_subscriptions
+  get   "settings",               to: redirect("/settings/account")
+  get   "settings/account",       to: "settings#account",         as: :settings_account
+  patch "settings/profile",       to: "settings#update_profile",  as: :settings_profile
+  patch "settings/password",      to: "settings#update_password", as: :settings_password
+  get   "settings/subscriptions", to: "settings#subscriptions",   as: :settings_subscriptions
 
   resources :articles, only: [ :index, :show, :new, :create, :edit, :update, :destroy ]
   resources :updates, only: [ :index, :create, :update, :destroy ]

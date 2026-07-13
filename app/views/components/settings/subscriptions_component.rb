@@ -8,6 +8,7 @@ module Settings
 
     def view_template
       div(class: "max-w-2xl mx-auto") do
+        render Settings::TabsComponent.new(active: :subscriptions)
         h1(class: "text-2xl font-bold mb-2") { "Subscriptions" }
         p(class: "text-base-content/60 mb-6") do
           plain "Feedback submissions you get comment notifications for. " \
