@@ -131,6 +131,7 @@ END;
 CREATE TABLE "tools" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "name" varchar NOT NULL, "url" varchar NOT NULL, "description" varchar, "icon_key" varchar NOT NULL, "position" integer DEFAULT 0 NOT NULL, "active" boolean DEFAULT TRUE NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL);
 CREATE INDEX "index_tools_on_position" ON "tools" ("position") /*application='Feedbackhub'*/;
 INSERT INTO "schema_migrations" (version) VALUES
+('20260713120001'),
 ('20260713120000'),
 ('20260710190618'),
 ('20260710145708'),

@@ -25,3 +25,7 @@ FeedbackTemplate.find_or_create_by!(name: "CSR Feedback") do |t|
 end
 
 puts "Created CSR Feedback template"
+
+Tool.seed_defaults!
+
+puts "Seeded #{Tool.count} tools"

@@ -10,7 +10,9 @@ module Tools
       div(class: "space-y-6") do
         h1(class: "page-title") { "Tools" }
         if @tools.empty?
-          p(class: "text-base-content/60 text-center py-12") { "No tools configured. Edit config/tools.yml to add tools." }
+          p(class: "text-base-content/60 text-center py-12") do
+            current_user&.admin? ? "No tools yet. Add one from Admin → Tools." : "No tools yet."
+          end
         else
           div(class: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4") do
             @tools.each { |tool| render_tool_card(tool) }
@@ -22,14 +24,14 @@ module Tools
     private
 
     def render_tool_card(tool)
-      a(href: tool["url"], target: "_blank", rel: "noopener noreferrer", class: "block") do
+      a(href: tool.url, target: "_blank", rel: "noopener noreferrer", class: "block") do
         Card class: "surface surface-raised cursor-pointer h-full" do |card|
           card.body class: "items-center text-center" do
             div(class: "mb-3") do
-              render_icon(tool["icon"])
+              render_icon(tool.icon_path)
             end
-            h2(class: "card-title text-lg justify-center") { tool["name"] }
-            p(class: "text-sm text-base-content/60") { tool["description"] }
+            h2(class: "card-title text-lg justify-center") { tool.name }
+            p(class: "text-sm text-base-content/60") { tool.description }
           end
         end
       end
