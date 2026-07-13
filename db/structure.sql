@@ -128,7 +128,10 @@ CREATE TRIGGER search_entries_au AFTER UPDATE ON search_entries BEGIN
   INSERT INTO search_entries_fts(search_entries_fts, rowid, content) VALUES ('delete', old.id, old.content);
   INSERT INTO search_entries_fts(rowid, content) VALUES (new.id, new.content);
 END;
+CREATE TABLE "tools" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "name" varchar NOT NULL, "url" varchar NOT NULL, "description" varchar, "icon_key" varchar NOT NULL, "position" integer DEFAULT 0 NOT NULL, "active" boolean DEFAULT TRUE NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL);
+CREATE INDEX "index_tools_on_position" ON "tools" ("position") /*application='Feedbackhub'*/;
 INSERT INTO "schema_migrations" (version) VALUES
+('20260713120000'),
 ('20260710190618'),
 ('20260710145708'),
 ('20260708130002'),

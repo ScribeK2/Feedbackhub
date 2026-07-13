@@ -1,0 +1,23 @@
+mxtoolbox:
+  name: MXToolbox
+  url: https://mxtoolbox.com
+  description: Email deliverability diagnostics
+  icon_key: envelope
+  position: 0
+  active: true
+
+dns_checker:
+  name: DNS Checker
+  url: https://dnschecker.org
+  description: DNS propagation checker
+  icon_key: globe
+  position: 1
+  active: true
+
+retired_tool:
+  name: Retired Tool
+  url: https://retired.example.com
+  description: No longer offered
+  icon_key: bolt
+  position: 2
+  active: false
