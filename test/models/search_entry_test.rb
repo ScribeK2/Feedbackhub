@@ -19,7 +19,7 @@ class SearchEntryTest < ActiveSupport::TestCase
 
   test "sanitize_fts_query neutralizes FTS5 operators and quotes" do
     assert_equal '"a" "AND" "(b"*', SearchEntry.sanitize_fts_query('"a AND (b')
-    assert_equal '"c"*', SearchEntry.sanitize_fts_query('c*')
+    assert_equal '"c"*', SearchEntry.sanitize_fts_query("c*")
   end
 
   test "sanitize_fts_query returns nil for empty or unusable input" do
