@@ -128,4 +128,11 @@ class SettingsControllerTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_response :success
   end
+
+  test "user menu links to the account settings page" do
+    sign_in_as_user
+    get root_path
+    assert_response :success
+    assert_select "a[href=?]", settings_account_path, text: "Settings"
+  end
 end

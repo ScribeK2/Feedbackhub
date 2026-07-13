@@ -180,7 +180,7 @@ module Layouts
             end
           end
           menu.item do
-            a(href: settings_subscriptions_path) { "Subscription Settings" }
+            a(href: settings_account_path) { "Settings" }
           end
           menu.item do
             form(action: logout_path, method: "post") do
