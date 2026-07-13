@@ -1,6 +1,5 @@
 class ToolsController < ApplicationController
   def index
-    @tools = YAML.load_file(Rails.root.join("config/tools.yml"))
-    render Tools::IndexComponent.new(tools: @tools)
+    render Tools::IndexComponent.new(tools: Tool.active.ordered)
   end
 end

@@ -50,6 +50,7 @@ Rails.application.routes.draw do
         post :merge
       end
     end
+    resources :tools, except: [ :show ]
   end
 
   # Healthcheck endpoint for ONCE deployment
