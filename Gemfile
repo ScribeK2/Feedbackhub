@@ -25,6 +25,7 @@ gem "bcrypt", "~> 3.1"
 # Rich text
 gem "lexxy", "~> 0.9.0.beta"
 gem "image_processing", "~> 2.0"
+gem "ruby-vips", "~> 2.0"
 
 # Code highlighting
 gem "rouge"
