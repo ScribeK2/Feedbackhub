@@ -18,6 +18,12 @@ class SettingsController < ApplicationController
       ), status: :unprocessable_entity
     end
 
+    if password_params[:password].blank?
+      return render Settings::AccountComponent.new(
+        user: current_user, password_error: "New password can't be blank."
+      ), status: :unprocessable_entity
+    end
+
     if current_user.update(password_params)
       redirect_to settings_account_path, notice: "Password changed."
     else

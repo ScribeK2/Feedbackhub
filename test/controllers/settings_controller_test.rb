@@ -129,6 +129,26 @@ class SettingsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "update_profile ignores a stray id param and edits only the current user" do
+    sign_in_as_user
+    other = users(:admin)
+    original_other_name = other.name
+    patch settings_profile_path, params: {
+      id: other.id, user: { name: "Hacked", email: "regular-new@test.com" }
+    }
+    assert_equal original_other_name, other.reload.name
+    assert_equal "Hacked", users(:regular).reload.name
+  end
+
+  test "update_password rejects a blank new password" do
+    sign_in_as_user
+    patch settings_password_path, params: {
+      user: { current_password: "password", password: "", password_confirmation: "" }
+    }
+    assert_response :unprocessable_entity
+    assert users(:regular).reload.authenticate("password")
+  end
+
   test "user menu links to the account settings page" do
     sign_in_as_user
     get root_path
