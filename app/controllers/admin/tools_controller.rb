@@ -8,7 +8,7 @@ module Admin
     end
 
     def new
-      render Admin::ToolFormComponent.new(tool: Tool.new(active: true, position: Tool.count))
+      render Admin::ToolFormComponent.new(tool: Tool.new(active: true, position: Tool.maximum(:position).to_i + 1))
     end
 
     def create

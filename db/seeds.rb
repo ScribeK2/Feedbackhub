@@ -26,6 +26,7 @@ end
 
 puts "Created CSR Feedback template"
 
+# Additive by URL: re-running does not remove admin-deleted tools or update edited ones.
 Tool.seed_defaults!
 
 puts "Seeded #{Tool.count} tools"

@@ -63,4 +63,14 @@ class ToolTest < ActiveSupport::TestCase
     assert_equal "MXToolbox", mx.name
     assert_equal 0, mx.position
   end
+
+  test "seed_defaults! does not clobber an admin-edited tool" do
+    Tool.delete_all
+    Tool.seed_defaults!
+    Tool.find_by(url: "https://mxtoolbox.com").update!(name: "Edited Name")
+
+    Tool.seed_defaults!
+
+    assert_equal "Edited Name", Tool.find_by(url: "https://mxtoolbox.com").name
+  end
 end

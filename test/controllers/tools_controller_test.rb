@@ -10,6 +10,7 @@ class ToolsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h2.card-title", text: "MXToolbox"
     assert_select "h2.card-title", text: "DNS Checker"
+    assert response.body.index("MXToolbox") < response.body.index("DNS Checker")
   end
 
   test "index excludes inactive tools" do
