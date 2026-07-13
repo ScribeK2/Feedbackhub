@@ -36,7 +36,7 @@ class Tool < ApplicationRecord
   ].freeze
 
   validates :name, :url, :icon_key, presence: true
-  validates :url, format: { with: %r{\Ahttps?://}i, message: "must start with http:// or https://" }
+  validates :url, format: { with: %r{\Ahttps?://\S+\z}i, message: "must be a valid http:// or https:// URL" }
   validates :icon_key, inclusion: { in: ICONS.keys }
   validates :position, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
 

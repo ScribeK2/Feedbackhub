@@ -18,7 +18,13 @@ class ToolTest < ActiveSupport::TestCase
   test "rejects a url without an http(s) scheme" do
     tool = Tool.new(name: "Bad", url: "ftp://example.com", icon_key: "globe")
     assert_not tool.valid?
-    assert_includes tool.errors[:url], "must start with http:// or https://"
+    assert_includes tool.errors[:url], "must be a valid http:// or https:// URL"
+  end
+
+  test "rejects a url with an injected newline after a valid prefix" do
+    tool = Tool.new(name: "Bad", url: "https://ok.com\njavascript:alert(1)", icon_key: "globe")
+    assert_not tool.valid?
+    assert_includes tool.errors[:url], "must be a valid http:// or https:// URL"
   end
 
   test "rejects an icon_key outside the curated set" do
