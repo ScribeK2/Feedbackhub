@@ -23,7 +23,7 @@ gem "solid_cable"
 gem "bcrypt", "~> 3.1"
 
 # Rich text
-gem "lexxy", "~> 0.9.0.beta"
+gem "lexxy", "~> 0.9.24"
 gem "image_processing", "~> 2.0"
 # require: false — image_processing loads ruby-vips on demand when Active Storage
 # processes a variant. Force-requiring it at boot makes app-booting CI jobs (e.g.
