@@ -29,7 +29,10 @@ module Feedbackhub
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
-    config.autoload_lib(ignore: %w[assets tasks])
+    # generators: lib/generators holds Rails generators loaded on demand by the
+    # generator system; their class names don't follow Zeitwerk path conventions,
+    # so eager loading (CI) would raise Zeitwerk::NameError. Exclude them.
+    config.autoload_lib(ignore: %w[assets tasks generators])
 
     # Configuration for the application, engines, and railties goes here.
     #
