@@ -1,5 +1,5 @@
 csr_feedback:
-  name: "csr_feedback"
+  name: "CSR Feedback"
   field_schema:
     - name: "ticket_number"
       label: "Ticket #"

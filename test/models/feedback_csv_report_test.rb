@@ -16,7 +16,7 @@ class FeedbackCsvReportTest < ActiveSupport::TestCase
     assert_equal "TK-001", rows.first["ticket_number"]
     assert_equal "Jane Doe", rows.first["csr_name"]
     assert_equal "High", rows.first["priority"]
-    assert_equal "csr_feedback", rows.first["template"]
+    assert_equal "CSR Feedback", rows.first["template"]
   end
 
   test "empty collection yields header only" do
