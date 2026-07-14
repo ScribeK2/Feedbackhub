@@ -30,6 +30,9 @@ gem "ruby-vips", "~> 2.0"
 # Code highlighting
 gem "rouge"
 
+# csv was removed from Ruby's default gems in 3.4; needed for data exports
+gem "csv"
+
 # Windows timezone data
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 

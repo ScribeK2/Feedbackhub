@@ -5,24 +5,16 @@ class FeedbackController < ApplicationController
   before_action :set_submission, only: [ :edit, :update, :destroy ]
 
   def index
-    @submissions = team_scoped(FeedbackSubmission.includes(:feedback_template, status_changes: :actor)).order(created_at: :desc)
-    @submissions = @submissions.where(csr_name: params[:csr]) if params[:csr].present?
-    @submissions = @submissions.where(submitted_by: params[:submitted_by]) if params[:submitted_by].present?
-    @submissions = @submissions.search(params[:q]) if params[:q].present?
-    @submissions = @submissions.with_status(params[:status]) if params[:status].present?
-    @submissions = @submissions.by_priority(params[:priority]) if params[:priority].present?
-    @submissions = @submissions.by_feedback_type(params[:feedback_type]) if params[:feedback_type].present?
-    range = date_range_from(params[:start], params[:end])
-    @submissions = @submissions.where(created_at: range) if range
-
-    render Feedback::IndexComponent.new(
-      submissions: @submissions,
-      filters: {
-        q: params[:q], csr: params[:csr], submitted_by: params[:submitted_by],
-        status: params[:status], priority: params[:priority],
-        feedback_type: params[:feedback_type], start: params[:start], end: params[:end]
-      }
-    )
+    @submissions = filtered_submissions
+    respond_to do |format|
+      format.html do
+        render Feedback::IndexComponent.new(submissions: @submissions, filters: current_filters)
+      end
+      format.csv do
+        report = FeedbackCsvReport.new(@submissions)
+        send_data report.to_csv, filename: report.filename, type: "text/csv"
+      end
+    end
   end
 
   def new
@@ -132,5 +124,26 @@ class FeedbackController < ApplicationController
       keys
     end
     params.fetch(:data, {}).permit(*allowed_keys).to_h
+  end
+
+  def filtered_submissions
+    submissions = team_scoped(FeedbackSubmission.includes(:feedback_template, status_changes: :actor)).order(created_at: :desc)
+    submissions = submissions.where(csr_name: params[:csr]) if params[:csr].present?
+    submissions = submissions.where(submitted_by: params[:submitted_by]) if params[:submitted_by].present?
+    submissions = submissions.search(params[:q]) if params[:q].present?
+    submissions = submissions.with_status(params[:status]) if params[:status].present?
+    submissions = submissions.by_priority(params[:priority]) if params[:priority].present?
+    submissions = submissions.by_feedback_type(params[:feedback_type]) if params[:feedback_type].present?
+    range = date_range_from(params[:start], params[:end])
+    submissions = submissions.where(created_at: range) if range
+    submissions
+  end
+
+  def current_filters
+    {
+      q: params[:q], csr: params[:csr], submitted_by: params[:submitted_by],
+      status: params[:status], priority: params[:priority],
+      feedback_type: params[:feedback_type], start: params[:start], end: params[:end]
+    }
   end
 end

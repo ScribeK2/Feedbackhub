@@ -33,8 +33,20 @@ module Scorecards
           h1(class: "page-title") { @report.csr_name }
           p(class: "text-sm text-base-content/60") { "Scorecard" }
         end
-        a(href: scorecards_path, class: "btn btn-ghost btn-sm") { "All scorecards" }
+        div(class: "flex gap-2") do
+          a(href: detail_csv_href, class: "btn btn-ghost btn-sm", data: { turbo: "false" }) { "Export CSV" }
+          a(href: scorecards_path, class: "btn btn-ghost btn-sm") { "All scorecards" }
+        end
       end
+    end
+
+    def detail_csv_href
+      scorecard_path(
+        csr: @report.csr_name,
+        start: @report.date_range.begin.to_date.iso8601,
+        end: @report.date_range.end.to_date.iso8601,
+        format: :csv
+      )
     end
 
     def render_date_form
