@@ -142,4 +142,35 @@ class ScorecardsControllerTest < ActionDispatch::IntegrationTest
     assert_not_includes body, "status=reviewed"
     assert_not_includes body, "status=actioned"
   end
+
+  # CSV export
+  test "index csv requires manager or admin" do
+    sign_in_as_user
+    get scorecards_path(format: :csv)
+    assert_redirected_to root_path
+  end
+
+  test "index csv returns team-summary for a manager" do
+    sign_in_as_manager
+    get scorecards_path(format: :csv)
+    assert_response :success
+    assert_equal "text/csv", response.media_type
+    assert_match(/\Acsr_name,total,delta,open/, response.body)
+    assert_includes response.body, "Jane Doe" # manager's team
+  end
+
+  test "show csv returns a single-CSR detail for an authorized csr" do
+    sign_in_as_manager
+    get scorecard_path(csr: "Jane Doe", format: :csv)
+    assert_response :success
+    assert_equal "text/csv", response.media_type
+    assert_match(/\Asection,label,count/, response.body)
+    assert_match(/attachment; filename=/, response.headers["Content-Disposition"])
+  end
+
+  test "show csv redirects for a csr not on the manager's team" do
+    sign_in_as_manager
+    get scorecard_path(csr: "Carlos Reyes", format: :csv)
+    assert_redirected_to scorecards_path
+  end
 end

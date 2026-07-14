@@ -8,7 +8,13 @@ module Scorecards
 
     def view_template
       div(class: "space-y-6") do
-        h1(class: "page-title") { "Scorecards" }
+        div(class: "flex justify-between items-center") do
+          h1(class: "page-title") { "Scorecards" }
+          unless @tiles.empty?
+            a(href: scorecards_path(format: :csv), class: "btn btn-ghost btn-sm",
+              data: { turbo: "false" }) { "Export CSV" }
+          end
+        end
         if @tiles.empty?
           render_empty_prompt
         else

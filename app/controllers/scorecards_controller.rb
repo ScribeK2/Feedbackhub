@@ -4,7 +4,14 @@ class ScorecardsController < ApplicationController
   before_action :require_manager_or_admin
 
   def index
-    render Scorecards::IndexComponent.new(tiles: tiles_for(accessible_csr_names))
+    respond_to do |format|
+      format.html { render Scorecards::IndexComponent.new(tiles: tiles_for(accessible_csr_names)) }
+      format.csv do
+        reports = accessible_csr_names.map { |name| ScorecardReport.new(csr_name: name, date_range: requested_range) }
+        report = ScorecardSummaryCsvReport.new(reports)
+        send_data report.to_csv, filename: report.filename, type: "text/csv"
+      end
+    end
   end
 
   def show
@@ -13,9 +20,14 @@ class ScorecardsController < ApplicationController
       redirect_to scorecards_path, alert: "That CSR is not on your team." and return
     end
 
-    render Scorecards::ShowComponent.new(
-      report: ScorecardReport.new(csr_name: csr, date_range: requested_range)
-    )
+    report = ScorecardReport.new(csr_name: csr, date_range: requested_range)
+    respond_to do |format|
+      format.html { render Scorecards::ShowComponent.new(report: report) }
+      format.csv do
+        csv = ScorecardDetailCsvReport.new(report)
+        send_data csv.to_csv, filename: csv.filename, type: "text/csv"
+      end
+    end
   end
 
   private
