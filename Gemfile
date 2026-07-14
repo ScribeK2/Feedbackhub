@@ -25,7 +25,10 @@ gem "bcrypt", "~> 3.1"
 # Rich text
 gem "lexxy", "~> 0.9.0.beta"
 gem "image_processing", "~> 2.0"
-gem "ruby-vips", "~> 2.0"
+# require: false — image_processing loads ruby-vips on demand when Active Storage
+# processes a variant. Force-requiring it at boot makes app-booting CI jobs (e.g.
+# `bin/importmap audit`) fail on runners without the libvips system library.
+gem "ruby-vips", "~> 2.0", require: false
 
 # Code highlighting
 gem "rouge"
