@@ -26,7 +26,11 @@ module Feedback
     def render_header
       div(class: "flex justify-between items-center") do
         h1(class: "page-title") { "Feedbacks" }
-        Button(:primary, as: :a, href: new_feedback_path) { "Submit Feedback" }
+        div(class: "flex gap-2") do
+          a(href: feedback_index_path(**@filters.compact_blank, format: :csv),
+            class: "btn btn-ghost btn-sm", data: { turbo: "false" }) { "Export CSV" }
+          Button(:primary, as: :a, href: new_feedback_path) { "Submit Feedback" }
+        end
       end
     end
 

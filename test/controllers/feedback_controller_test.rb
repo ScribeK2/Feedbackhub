@@ -377,4 +377,34 @@ class FeedbackControllerTest < ActionDispatch::IntegrationTest
     assert_match "TK-001", response.body
     assert_no_match "TK-002", response.body
   end
+
+  # CSV export
+  test "index as csv returns a downloadable csv" do
+    get feedback_index_path(format: :csv)
+    assert_response :success
+    assert_equal "text/csv", response.media_type
+    assert_match(/attachment; filename=/, response.headers["Content-Disposition"])
+    assert_match(/\Aid,created_at,template,csr_name/, response.body)
+  end
+
+  test "index csv honors the priority filter" do
+    get feedback_index_path(priority: "High", format: :csv)
+    assert_response :success
+    assert_includes response.body, "TK-001"   # High
+    assert_not_includes response.body, "TK-002" # Low
+  end
+
+  test "index csv is team-scoped for managers" do
+    sign_in_as_manager
+    off_team = FeedbackSubmission.create!(
+      feedback_template: @template,
+      created_at: 1.day.ago, updated_at: 1.day.ago,
+      data: { "ticket_number" => "TK-OFF", "csr" => "Carlos Reyes",
+              "feedback_type" => "Knowledge Gap", "impact" => "Resolution Time",
+              "priority" => "High", "submitted_by" => "Tester" }
+    )
+    get feedback_index_path(format: :csv)
+    assert_includes response.body, "TK-001"     # Jane Doe — manager's team
+    assert_not_includes response.body, "TK-OFF" # Carlos Reyes — off team
+  end
 end
