@@ -31,6 +31,13 @@ class FeedbackCsvReportTest < ActiveSupport::TestCase
     assert_equal 'Doe, "Jane"', row["csr_name"]
   end
 
+  test "neutralizes formula injection in string cells" do
+    submission = feedback_submissions(:high_priority)
+    submission.csr_name = "=HYPERLINK(0)"
+    row = CSV.parse(FeedbackCsvReport.new([ submission ]).to_csv, headers: true).first
+    assert_equal "'=HYPERLINK(0)", row["csr_name"]
+  end
+
   test "filename includes today's date" do
     assert_equal "feedback-#{Date.current.iso8601}.csv", FeedbackCsvReport.new([]).filename
   end

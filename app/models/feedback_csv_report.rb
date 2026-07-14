@@ -6,6 +6,8 @@ require "csv"
 # `data` JSON and rich-text `feedback_details` are intentionally excluded.
 # Pure value object over an enumerable of FeedbackSubmission records.
 class FeedbackCsvReport
+  include CsvSafe
+
   HEADERS = %w[id created_at template csr_name feedback_type priority status ticket_number submitted_by].freeze
 
   def initialize(submissions)
@@ -27,15 +29,15 @@ class FeedbackCsvReport
 
   def row_for(submission)
     [
-      submission.id,
-      submission.created_at&.strftime("%Y-%m-%d %H:%M"),
-      submission.feedback_template&.name,
-      submission.csr_name,
-      submission.feedback_type,
-      submission.priority,
-      submission.status,
-      submission.ticket_number,
-      submission.submitted_by
+      csv_safe(submission.id),
+      csv_safe(submission.created_at&.strftime("%Y-%m-%d %H:%M")),
+      csv_safe(submission.feedback_template&.name),
+      csv_safe(submission.csr_name),
+      csv_safe(submission.feedback_type),
+      csv_safe(submission.priority),
+      csv_safe(submission.status),
+      csv_safe(submission.ticket_number),
+      csv_safe(submission.submitted_by)
     ]
   end
 end
