@@ -154,4 +154,22 @@ class ScorecardReportTest < ActiveSupport::TestCase
 
     assert_equal 2, report.trend_buckets.sum { |b| b[:count] }
   end
+
+  test "csr_name raises ArgumentError for multi-CSR reports" do
+    build_submission(csr: "Team A", created_at: 1.day.ago)
+    build_submission(csr: "Team B", created_at: 1.day.ago)
+
+    report = ScorecardReport.for_team([ "Team A", "Team B" ])
+
+    error = assert_raises(ArgumentError) { report.csr_name }
+    assert_match(/covers 2/, error.message)
+  end
+
+  test "csr_name returns the name for single-CSR reports" do
+    build_submission(csr: "Single CSR", created_at: 1.day.ago)
+
+    report = ScorecardReport.new(csr_name: "Single CSR")
+
+    assert_equal "Single CSR", report.csr_name
+  end
 end
