@@ -8,7 +8,12 @@ class ScorecardsController < ApplicationController
     reports = ordered_reports(names)
 
     respond_to do |format|
-      format.html { render Scorecards::IndexComponent.new(tiles: reports.map { |report| tile_for(report) }) }
+      format.html do
+        render Scorecards::IndexComponent.new(
+          tiles: reports.map { |report| tile_for(report) },
+          date_range: requested_range
+        )
+      end
       format.csv do
         report = ScorecardSummaryCsvReport.new(reports)
         send_data report.to_csv, filename: report.filename, type: "text/csv"

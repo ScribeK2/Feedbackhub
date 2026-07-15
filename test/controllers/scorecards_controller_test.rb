@@ -250,4 +250,36 @@ class ScorecardsControllerTest < ActionDispatch::IntegrationTest
     rows = CSV.parse(response.body, headers: true)
     assert_equal %w[Riser Flat Faller], rows.map { |row| row["csr_name"] }
   end
+
+  test "index renders the date form populated with the requested range" do
+    sign_in_as_manager
+
+    get scorecards_path(start: "2026-01-01", end: "2026-01-31")
+    assert_response :success
+
+    assert_includes response.body, 'value="2026-01-01"'
+    assert_includes response.body, 'value="2026-01-31"'
+  end
+
+  test "index export csv link carries the requested range" do
+    sign_in_as_manager
+    start_param = 10.days.ago.to_date.iso8601
+    end_param = Date.current.iso8601
+
+    get scorecards_path(start: start_param, end: end_param)
+    assert_response :success
+
+    body = CGI.unescapeHTML(response.body)
+    assert_includes body, "/scorecards.csv?end=#{end_param}&start=#{start_param}"
+  end
+
+  test "show still renders its date form after the extraction" do
+    sign_in_as_manager
+
+    get scorecard_path(csr: "Jane Doe", start: "2026-01-01", end: "2026-01-31")
+    assert_response :success
+
+    assert_includes response.body, 'value="2026-01-01"'
+    assert_includes response.body, 'name="csr"' # the show form keeps its hidden CSR field
+  end
 end

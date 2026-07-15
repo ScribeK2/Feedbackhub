@@ -2,8 +2,9 @@
 
 module Scorecards
   class IndexComponent < ApplicationComponent
-    def initialize(tiles:)
+    def initialize(tiles:, date_range:)
       @tiles = tiles
+      @date_range = date_range
     end
 
     def view_template
@@ -11,13 +12,14 @@ module Scorecards
         div(class: "flex justify-between items-center") do
           h1(class: "page-title") { "Scorecards" }
           unless @tiles.empty?
-            a(href: scorecards_path(format: :csv), class: "btn btn-ghost btn-sm",
+            a(href: index_csv_href, class: "btn btn-ghost btn-sm",
               data: { turbo: "false" }) { "Export CSV" }
           end
         end
         if @tiles.empty?
           render_empty_prompt
         else
+          render_date_form
           div(class: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4") do
             @tiles.each { |tile| render_tile(tile) }
           end
@@ -26,6 +28,23 @@ module Scorecards
     end
 
     private
+
+    # Must carry the range: without it the export silently returns a
+    # different window than the page is showing.
+    def index_csv_href
+      scorecards_path(
+        start: @date_range.begin.to_date.iso8601,
+        end: @date_range.end.to_date.iso8601,
+        format: :csv
+      )
+    end
+
+    def render_date_form
+      form(action: scorecards_path, method: "get", class: "flex flex-wrap items-end gap-2") do
+        render DateRangeFieldsComponent.new(date_range: @date_range)
+        Button(:primary, :sm, type: "submit") { "Apply" }
+      end
+    end
 
     def render_empty_prompt
       Card class: "surface" do |card|
