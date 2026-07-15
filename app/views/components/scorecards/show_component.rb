@@ -35,7 +35,9 @@ module Scorecards
         end
         div(class: "flex gap-2") do
           a(href: detail_csv_href, class: "btn btn-ghost btn-sm", data: { turbo: "false" }) { "Export CSV" }
-          a(href: scorecards_path, class: "btn btn-ghost btn-sm") { "All scorecards" }
+          a(href: scorecards_path(start: @report.date_range.begin.to_date.iso8601,
+                                  end: @report.date_range.end.to_date.iso8601),
+            class: "btn btn-ghost btn-sm") { "All scorecards" }
         end
       end
     end
@@ -52,16 +54,8 @@ module Scorecards
     def render_date_form
       form(action: scorecard_path, method: "get", class: "flex flex-wrap items-end gap-2") do
         input(type: "hidden", name: "csr", value: @report.csr_name)
-        render_date_field("start", @report.date_range.begin.to_date)
-        render_date_field("end", @report.date_range.end.to_date)
+        render DateRangeFieldsComponent.new(date_range: @report.date_range)
         Button(:primary, :sm, type: "submit") { "Apply" }
-      end
-    end
-
-    def render_date_field(name, value)
-      div(class: "form-control") do
-        label(class: "label") { span(class: "label-text text-xs capitalize") { name } }
-        input(type: "date", name: name, value: value.iso8601, class: "input input-bordered input-sm")
       end
     end
 
@@ -105,14 +99,7 @@ module Scorecards
     end
 
     def render_delta
-      delta = @report.delta
-      if delta.positive?
-        span(class: "badge badge-error badge-soft") { "▲ #{delta} vs previous" }
-      elsif delta.negative?
-        span(class: "badge badge-success badge-soft") { "▼ #{delta.abs} vs previous" }
-      else
-        span(class: "badge badge-ghost") { "No change vs previous" }
-      end
+      render DeltaBadgeComponent.new(delta: @report.delta)
     end
 
     def render_recent

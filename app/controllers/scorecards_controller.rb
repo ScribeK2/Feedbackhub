@@ -4,10 +4,18 @@ class ScorecardsController < ApplicationController
   before_action :require_manager_or_admin
 
   def index
+    names = accessible_csr_names
+    reports = ordered_reports(names)
+
     respond_to do |format|
-      format.html { render Scorecards::IndexComponent.new(tiles: tiles_for(accessible_csr_names)) }
+      format.html do
+        render Scorecards::IndexComponent.new(
+          tiles: reports.map { |report| tile_for(report) },
+          team: team_summary(names),
+          date_range: requested_range
+        )
+      end
       format.csv do
-        reports = accessible_csr_names.map { |name| ScorecardReport.new(csr_name: name, date_range: requested_range) }
         report = ScorecardSummaryCsvReport.new(reports)
         send_data report.to_csv, filename: report.filename, type: "text/csv"
       end
@@ -53,14 +61,28 @@ class ScorecardsController < ApplicationController
     current_user.team_csr_names.any? { |name| name.casecmp?(csr) }
   end
 
-  def tiles_for(names)
-    names.map do |name|
-      report = ScorecardReport.new(csr_name: name)
-      { csr_name: name, count: report.total_count, delta: report.delta, open_count: report.open_count }
-    end
+  # Ranked by within-CSR movement, worst first. Sorting by total_count is
+  # forbidden: with no ticket-volume denominator that is a punitive
+  # leaderboard, which the scorecard spec explicitly refuses. The name
+  # tie-break is load-bearing — most rows sit at delta 0, and without it the
+  # list reshuffles between reloads.
+  def ordered_reports(names)
+    names.map { |name| ScorecardReport.new(csr_name: name, date_range: requested_range) }
+         .sort_by { |report| [ -report.delta, report.csr_name.downcase ] }
+  end
+
+  # One report over the whole team: the baseline that gives each tile's delta
+  # its meaning. Two COUNTs and one pluck, independent of team size.
+  def team_summary(names)
+    report = ScorecardReport.for_team(names, date_range: requested_range)
+    { count: report.total_count, delta: report.delta, buckets: report.trend_buckets, zero: report.zero_in_period? }
+  end
+
+  def tile_for(report)
+    { csr_name: report.csr_name, count: report.total_count, delta: report.delta, open_count: report.open_count }
   end
 
   def requested_range
-    date_range_from(params[:start], params[:end]) || ScorecardReport.default_range
+    @requested_range ||= date_range_from(params[:start], params[:end]) || ScorecardReport.default_range
   end
 end

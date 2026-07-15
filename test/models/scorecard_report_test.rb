@@ -3,22 +3,7 @@
 require "test_helper"
 
 class ScorecardReportTest < ActiveSupport::TestCase
-  def build_submission(csr:, created_at:, priority: "High", feedback_type: "Knowledge Gap", impact: "Resolution Time")
-    Csr.lookup(csr) || Csr.create!(name: csr)
-    FeedbackSubmission.create!(
-      feedback_template: feedback_templates(:csr_feedback),
-      created_at: created_at,
-      updated_at: created_at,
-      data: {
-        "ticket_number" => "TK-#{rand(10_000)}",
-        "csr" => csr,
-        "feedback_type" => feedback_type,
-        "impact" => impact,
-        "priority" => priority,
-        "submitted_by" => "Tester"
-      }
-    )
-  end
+  include ScorecardTestHelper
 
   test "matches CSR name case-insensitively via for_csrs" do
     build_submission(csr: "Bob Lee", created_at: 2.days.ago)
@@ -104,5 +89,87 @@ class ScorecardReportTest < ActiveSupport::TestCase
 
     report = ScorecardReport.new(csr_name: "Status CSR")
     assert_equal 2, report.open_count
+  end
+
+  test "for_team aggregates counts across every CSR in the set" do
+    range = (10.days.ago.beginning_of_day)..(Time.current.end_of_day)
+    build_submission(csr: "Team A", created_at: 2.days.ago)
+    build_submission(csr: "Team B", created_at: 3.days.ago)
+    build_submission(csr: "Team B", created_at: 4.days.ago)
+    build_submission(csr: "Off The Team", created_at: 2.days.ago)
+
+    report = ScorecardReport.for_team([ "Team A", "Team B" ], date_range: range)
+
+    assert_equal 3, report.total_count
+  end
+
+  test "for_team computes delta across the whole set" do
+    range = (10.days.ago.beginning_of_day)..(Time.current.end_of_day)
+    build_submission(csr: "Team A", created_at: 2.days.ago)   # current window
+    build_submission(csr: "Team B", created_at: 3.days.ago)   # current window
+    build_submission(csr: "Team A", created_at: 15.days.ago)  # previous window
+
+    report = ScorecardReport.for_team([ "Team A", "Team B" ], date_range: range)
+
+    assert_equal 2, report.total_count
+    assert_equal 1, report.previous_count
+    assert_equal 1, report.delta
+  end
+
+  test "for_team matches every name in the set case-insensitively" do
+    build_submission(csr: "Mixed Case", created_at: 1.day.ago)
+    build_submission(csr: "Other Name", created_at: 1.day.ago)
+
+    report = ScorecardReport.for_team([ "mixed case", "OTHER NAME" ])
+
+    assert_equal 2, report.total_count
+  end
+
+  test "for_team with no names counts nothing" do
+    build_submission(csr: "Team A", created_at: 1.day.ago)
+
+    report = ScorecardReport.for_team([])
+
+    assert_equal 0, report.total_count
+    assert report.empty?
+  end
+
+  test "trend_buckets counts without materializing submissions" do
+    range = (14.days.ago.beginning_of_day)..(Time.current.end_of_day)
+    build_submission(csr: "Pluck CSR", created_at: 2.days.ago)
+    report = ScorecardReport.new(csr_name: "Pluck CSR", date_range: range)
+
+    assert_equal 1, report.trend_buckets.sum { |b| b[:count] }
+    # The whole point: buckets must not drag full rows (and the JSON blob)
+    # through Ruby, so the current_submissions cache stays cold.
+    assert_not report.instance_variable_defined?(:@current_submissions)
+  end
+
+  test "for_team trend_buckets sums across the set" do
+    range = (14.days.ago.beginning_of_day)..(Time.current.end_of_day)
+    build_submission(csr: "Team A", created_at: 2.days.ago)
+    build_submission(csr: "Team B", created_at: 3.days.ago)
+
+    report = ScorecardReport.for_team([ "Team A", "Team B" ], date_range: range)
+
+    assert_equal 2, report.trend_buckets.sum { |b| b[:count] }
+  end
+
+  test "csr_name raises ArgumentError for multi-CSR reports" do
+    build_submission(csr: "Team A", created_at: 1.day.ago)
+    build_submission(csr: "Team B", created_at: 1.day.ago)
+
+    report = ScorecardReport.for_team([ "Team A", "Team B" ])
+
+    error = assert_raises(ArgumentError) { report.csr_name }
+    assert_match(/covers 2/, error.message)
+  end
+
+  test "csr_name returns the name for single-CSR reports" do
+    build_submission(csr: "Single CSR", created_at: 1.day.ago)
+
+    report = ScorecardReport.new(csr_name: "Single CSR")
+
+    assert_equal "Single CSR", report.csr_name
   end
 end

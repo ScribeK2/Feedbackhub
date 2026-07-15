@@ -3,8 +3,30 @@
 require "test_helper"
 
 class ScorecardsControllerTest < ActionDispatch::IntegrationTest
+  include ScorecardTestHelper
+
   # The `manager` fixture's team includes "Jane Doe" (team_memberships(:manager_jane)),
   # and Jane Doe has two feedback fixtures.
+
+  # A manager whose team is exactly the given CSR names.
+  def manager_with_team(email, names)
+    manager = User.create!(email: email, name: "Team Mgr", password: "password", role: "manager")
+    names.each do |name|
+      Csr.lookup(name) || Csr.create!(name: name)
+      TeamMembership.create!(manager: manager, csr_name: name)
+    end
+    manager
+  end
+
+  # Default range is the last 30 days, so the previous window is days 30-60.
+  def build_movement_team(email)
+    manager = manager_with_team(email, %w[Riser Flat Faller])
+    2.times { build_submission(csr: "Riser", created_at: 2.days.ago) }   # 0 -> 2, delta +2
+    build_submission(csr: "Flat", created_at: 2.days.ago)                # 1 -> 1, delta  0
+    build_submission(csr: "Flat", created_at: 45.days.ago)
+    2.times { build_submission(csr: "Faller", created_at: 45.days.ago) } # 2 -> 0, delta -2
+    manager
+  end
 
   test "unauthenticated user is redirected to login" do
     get scorecards_path
@@ -172,5 +194,191 @@ class ScorecardsControllerTest < ActionDispatch::IntegrationTest
     sign_in_as_manager
     get scorecard_path(csr: "Carlos Reyes", format: :csv)
     assert_redirected_to scorecards_path
+  end
+
+  test "index sorts CSRs by signed delta descending" do
+    manager = build_movement_team("sort@test.com")
+    sign_in(manager)
+
+    get scorecards_path
+    assert_response :success
+
+    body = response.body
+    assert_operator body.index("Riser"), :<, body.index("Flat")
+    assert_operator body.index("Flat"), :<, body.index("Faller")
+  end
+
+  test "index breaks delta ties alphabetically" do
+    # Neither CSR has any feedback, so both sit at delta 0.
+    manager = manager_with_team("tie@test.com", %w[Zeta Alpha])
+    sign_in(manager)
+
+    get scorecards_path
+    assert_response :success
+
+    body = response.body
+    assert_operator body.index("Alpha"), :<, body.index("Zeta")
+  end
+
+  test "index honors explicit start and end params" do
+    build_submission(csr: "Jane Doe", created_at: 200.days.ago)
+    sign_in_as_manager
+
+    get scorecards_path(start: 205.days.ago.to_date.iso8601, end: 195.days.ago.to_date.iso8601)
+    assert_response :success
+    # Only the 200-day-old item falls in the window; the two recent Jane Doe
+    # fixtures do not. Regression guard: HTML used to ignore these params
+    # while the CSV honored them.
+    assert_match ">1<", response.body
+  end
+
+  test "index falls back to the default range on inverted dates" do
+    sign_in_as_manager
+
+    get scorecards_path(start: Date.current.iso8601, end: 10.days.ago.to_date.iso8601)
+    assert_response :success
+    assert_match ">2<", response.body # both Jane Doe fixtures in the default 30-day window
+  end
+
+  test "index csv rows follow the same delta order as the page" do
+    manager = build_movement_team("csvorder@test.com")
+    sign_in(manager)
+
+    get scorecards_path(format: :csv)
+    assert_response :success
+
+    rows = CSV.parse(response.body, headers: true)
+    assert_equal %w[Riser Flat Faller], rows.map { |row| row["csr_name"] }
+  end
+
+  test "index renders the date form populated with the requested range" do
+    sign_in_as_manager
+
+    get scorecards_path(start: "2026-01-01", end: "2026-01-31")
+    assert_response :success
+
+    assert_includes response.body, 'value="2026-01-01"'
+    assert_includes response.body, 'value="2026-01-31"'
+  end
+
+  test "index export csv link carries the requested range" do
+    sign_in_as_manager
+    start_param = 10.days.ago.to_date.iso8601
+    end_param = Date.current.iso8601
+
+    get scorecards_path(start: start_param, end: end_param)
+    assert_response :success
+
+    body = CGI.unescapeHTML(response.body)
+    assert_includes body, "/scorecards.csv?end=#{end_param}&start=#{start_param}"
+  end
+
+  test "show back link carries the requested range" do
+    sign_in_as_manager
+    start_param = "2026-01-01"
+    end_param = "2026-01-31"
+
+    get scorecard_path(csr: "Jane Doe", start: start_param, end: end_param)
+    assert_response :success
+
+    body = CGI.unescapeHTML(response.body)
+    assert_includes body, "/scorecards?end=#{end_param}&start=#{start_param}"
+  end
+
+  test "show still renders its date form after the extraction" do
+    sign_in_as_manager
+
+    get scorecard_path(csr: "Jane Doe", start: "2026-01-01", end: "2026-01-31")
+    assert_response :success
+
+    assert_includes response.body, 'value="2026-01-01"'
+    assert_includes response.body, 'name="csr"' # the show form keeps its hidden CSR field
+  end
+
+  test "team strip sums issues across the whole team" do
+    manager = manager_with_team("strip@test.com", %w[Ann Bob])
+    2.times { build_submission(csr: "Ann", created_at: 2.days.ago) }
+    build_submission(csr: "Bob", created_at: 3.days.ago)
+    sign_in(manager)
+
+    get scorecards_path
+    assert_response :success
+
+    assert_match(/Team total.*?>3</m, response.body)
+  end
+
+  test "team strip shows the team-wide delta" do
+    manager = build_movement_team("stripdelta@test.com")
+    sign_in(manager)
+
+    get scorecards_path
+    assert_response :success
+
+    # Riser +2, Flat 0, Faller -2 -> team delta 0.
+    assert_match(/Team total.*?No change vs previous/m, response.body)
+  end
+
+  test "team strip shows the good state when the team logged nothing this period" do
+    manager = manager_with_team("stripzero@test.com", %w[Quiet One])
+    sign_in(manager)
+
+    get scorecards_path
+    assert_response :success
+
+    assert_includes response.body, "No issues logged this period"
+  end
+
+  test "empty-team manager sees no team strip" do
+    manager = User.create!(email: "nostrip@test.com", name: "No Strip", password: "password", role: "manager")
+    sign_in(manager)
+
+    get scorecards_path
+    assert_response :success
+
+    assert_not_includes response.body, "Team total"
+    assert_includes response.body, "No CSRs on your team yet"
+  end
+
+  test "index tile links carry the requested range" do
+    sign_in_as_manager
+    start_param = 10.days.ago.to_date.iso8601
+    end_param = Date.current.iso8601
+
+    get scorecards_path(start: start_param, end: end_param)
+    assert_response :success
+
+    body = CGI.unescapeHTML(response.body)
+    # Without the range, a tile reading N issues would open a show page that
+    # falls back to the default 30-day window and reads a different number.
+    assert_includes body, "/scorecards/show?csr=Jane+Doe&end=#{end_param}&start=#{start_param}"
+  end
+
+  test "index ranks movement, not standing" do
+    manager = manager_with_team("standing@test.com", %w[Veteran Newcomer])
+    15.times { build_submission(csr: "Veteran", created_at: 45.days.ago) }
+    16.times { build_submission(csr: "Veteran", created_at: 2.days.ago) }  # +1, total 16
+    2.times  { build_submission(csr: "Newcomer", created_at: 2.days.ago) } # +2, total 2
+    sign_in(manager)
+
+    get scorecards_path
+    assert_response :success
+
+    # Sorting by total_count would put Veteran (16) first. Ranking movement
+    # puts Newcomer (+2) first. This test is the guard on that invariant:
+    # it must fail if the sort key ever becomes standing instead of movement.
+    assert_operator response.body.index("Newcomer"), :<, response.body.index("Veteran")
+  end
+
+  test "regressed tiles carry the error accent and improved tiles the success accent" do
+    # Exactly one riser (+2), one faller (-2), one flat (0).
+    manager = build_movement_team("accent@test.com")
+    sign_in(manager)
+
+    get scorecards_path
+    assert_response :success
+
+    body = response.body
+    assert_equal 1, body.scan("border-error/40").size
+    assert_equal 1, body.scan("border-success/40").size
   end
 end

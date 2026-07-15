@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Aggregates feedback (issues) logged against a single CSR over a date range,
+# Aggregates feedback (issues) logged against one or more CSRs over a date range,
 # plus the equal-length immediately-preceding window, for the manager scorecard.
 #
 # Pure value object: reads FeedbackSubmission via the shared `for_csrs` scope and
@@ -10,11 +10,25 @@ class ScorecardReport
   DEFAULT_RANGE_DAYS = 30
   WEEKLY_BUCKET_MAX_DAYS = 90
 
-  attr_reader :csr_name, :date_range
+  attr_reader :date_range
 
-  def initialize(csr_name:, date_range: nil)
-    @csr_name = csr_name.to_s
+  # Team rollup: one report over many CSRs. A per-CSR report is the set of
+  # size one, so every public method below works unchanged for both.
+  def self.for_team(csr_names, date_range: nil)
+    new(csr_names: csr_names, date_range: date_range)
+  end
+
+  def initialize(csr_name: nil, csr_names: nil, date_range: nil)
+    @csr_names = Array(csr_names || csr_name).map(&:to_s)
     @date_range = date_range || self.class.default_range
+  end
+
+  # Single-subject callers only (page title, CSV filename). Raises rather than
+  # silently attributing a whole team to whichever CSR sorted first.
+  def csr_name
+    raise ArgumentError, "csr_name is for single-subject reports; this one covers #{@csr_names.size}" unless @csr_names.one?
+
+    @csr_names.first
   end
 
   def self.default_range
@@ -54,9 +68,12 @@ class ScorecardReport
     ordered_tally(current_submissions.map(&:status), FeedbackSubmission::STATUSES)
   end
 
+  # Counts timestamps rather than reading current_submissions: the team strip
+  # aggregates every CSR at once, and materializing full rows (with the JSON
+  # data blob) would load the table for an org-wide admin view.
   def trend_buckets
     counts = Hash.new(0)
-    current_submissions.each { |s| counts[bucket_key(s.created_at)] += 1 }
+    base.where(created_at: date_range).pluck(:created_at).each { |t| counts[bucket_key(t)] += 1 }
     bucket_starts.map { |start| { label: bucket_label(start), count: counts[start] } }
   end
 
@@ -75,7 +92,7 @@ class ScorecardReport
   private
 
   def base
-    FeedbackSubmission.for_csrs(csr_name)
+    FeedbackSubmission.for_csrs(@csr_names)
   end
 
   def current_submissions

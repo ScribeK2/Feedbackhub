@@ -38,3 +38,24 @@ end
 class ActionDispatch::IntegrationTest
   include AuthenticationHelper
 end
+
+module ScorecardTestHelper
+  # Builds a feedback submission for an arbitrary CSR, registering the CSR if
+  # needed. Shared by the scorecard model and controller tests.
+  def build_submission(csr:, created_at:, priority: "High", feedback_type: "Knowledge Gap", impact: "Resolution Time")
+    Csr.lookup(csr) || Csr.create!(name: csr)
+    FeedbackSubmission.create!(
+      feedback_template: feedback_templates(:csr_feedback),
+      created_at: created_at,
+      updated_at: created_at,
+      data: {
+        "ticket_number" => "TK-#{rand(10_000)}",
+        "csr" => csr,
+        "feedback_type" => feedback_type,
+        "impact" => impact,
+        "priority" => priority,
+        "submitted_by" => "Tester"
+      }
+    )
+  end
+end
