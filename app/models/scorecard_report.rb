@@ -10,11 +10,23 @@ class ScorecardReport
   DEFAULT_RANGE_DAYS = 30
   WEEKLY_BUCKET_MAX_DAYS = 90
 
-  attr_reader :csr_name, :date_range
+  attr_reader :date_range
 
-  def initialize(csr_name:, date_range: nil)
-    @csr_name = csr_name.to_s
+  # Team rollup: one report over many CSRs. A per-CSR report is the set of
+  # size one, so every public method below works unchanged for both.
+  def self.for_team(csr_names, date_range: nil)
+    new(csr_names: csr_names, date_range: date_range)
+  end
+
+  def initialize(csr_name: nil, csr_names: nil, date_range: nil)
+    @csr_names = Array(csr_names || csr_name).map(&:to_s)
     @date_range = date_range || self.class.default_range
+  end
+
+  # Single-subject callers only (page title, CSV filename). Team reports do
+  # not use this.
+  def csr_name
+    @csr_names.first.to_s
   end
 
   def self.default_range
@@ -75,7 +87,7 @@ class ScorecardReport
   private
 
   def base
-    FeedbackSubmission.for_csrs(csr_name)
+    FeedbackSubmission.for_csrs(@csr_names)
   end
 
   def current_submissions

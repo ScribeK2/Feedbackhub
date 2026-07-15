@@ -105,4 +105,47 @@ class ScorecardReportTest < ActiveSupport::TestCase
     report = ScorecardReport.new(csr_name: "Status CSR")
     assert_equal 2, report.open_count
   end
+
+  test "for_team aggregates counts across every CSR in the set" do
+    range = (10.days.ago.beginning_of_day)..(Time.current.end_of_day)
+    build_submission(csr: "Team A", created_at: 2.days.ago)
+    build_submission(csr: "Team B", created_at: 3.days.ago)
+    build_submission(csr: "Team B", created_at: 4.days.ago)
+    build_submission(csr: "Off The Team", created_at: 2.days.ago)
+
+    report = ScorecardReport.for_team([ "Team A", "Team B" ], date_range: range)
+
+    assert_equal 3, report.total_count
+  end
+
+  test "for_team computes delta across the whole set" do
+    range = (10.days.ago.beginning_of_day)..(Time.current.end_of_day)
+    build_submission(csr: "Team A", created_at: 2.days.ago)   # current window
+    build_submission(csr: "Team B", created_at: 3.days.ago)   # current window
+    build_submission(csr: "Team A", created_at: 15.days.ago)  # previous window
+
+    report = ScorecardReport.for_team([ "Team A", "Team B" ], date_range: range)
+
+    assert_equal 2, report.total_count
+    assert_equal 1, report.previous_count
+    assert_equal 1, report.delta
+  end
+
+  test "for_team matches every name in the set case-insensitively" do
+    build_submission(csr: "Mixed Case", created_at: 1.day.ago)
+    build_submission(csr: "Other Name", created_at: 1.day.ago)
+
+    report = ScorecardReport.for_team([ "mixed case", "OTHER NAME" ])
+
+    assert_equal 2, report.total_count
+  end
+
+  test "for_team with no names counts nothing" do
+    build_submission(csr: "Team A", created_at: 1.day.ago)
+
+    report = ScorecardReport.for_team([])
+
+    assert_equal 0, report.total_count
+    assert report.empty?
+  end
 end
