@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Aggregates feedback (issues) logged against a single CSR over a date range,
+# Aggregates feedback (issues) logged against one or more CSRs over a date range,
 # plus the equal-length immediately-preceding window, for the manager scorecard.
 #
 # Pure value object: reads FeedbackSubmission via the shared `for_csrs` scope and
@@ -66,9 +66,12 @@ class ScorecardReport
     ordered_tally(current_submissions.map(&:status), FeedbackSubmission::STATUSES)
   end
 
+  # Counts timestamps rather than reading current_submissions: the team strip
+  # aggregates every CSR at once, and materializing full rows (with the JSON
+  # data blob) would load the table for an org-wide admin view.
   def trend_buckets
     counts = Hash.new(0)
-    current_submissions.each { |s| counts[bucket_key(s.created_at)] += 1 }
+    base.where(created_at: date_range).pluck(:created_at).each { |t| counts[bucket_key(t)] += 1 }
     bucket_starts.map { |start| { label: bucket_label(start), count: counts[start] } }
   end
 

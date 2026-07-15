@@ -148,4 +148,25 @@ class ScorecardReportTest < ActiveSupport::TestCase
     assert_equal 0, report.total_count
     assert report.empty?
   end
+
+  test "trend_buckets counts without materializing submissions" do
+    range = (14.days.ago.beginning_of_day)..(Time.current.end_of_day)
+    build_submission(csr: "Pluck CSR", created_at: 2.days.ago)
+    report = ScorecardReport.new(csr_name: "Pluck CSR", date_range: range)
+
+    assert_equal 1, report.trend_buckets.sum { |b| b[:count] }
+    # The whole point: buckets must not drag full rows (and the JSON blob)
+    # through Ruby, so the current_submissions cache stays cold.
+    assert_not report.instance_variable_defined?(:@current_submissions)
+  end
+
+  test "for_team trend_buckets sums across the set" do
+    range = (14.days.ago.beginning_of_day)..(Time.current.end_of_day)
+    build_submission(csr: "Team A", created_at: 2.days.ago)
+    build_submission(csr: "Team B", created_at: 3.days.ago)
+
+    report = ScorecardReport.for_team([ "Team A", "Team B" ], date_range: range)
+
+    assert_equal 2, report.trend_buckets.sum { |b| b[:count] }
+  end
 end
