@@ -326,4 +326,17 @@ class ScorecardsControllerTest < ActionDispatch::IntegrationTest
     assert_not_includes response.body, "Team total"
     assert_includes response.body, "No CSRs on your team yet"
   end
+
+  test "regressed tiles carry the error accent and improved tiles the success accent" do
+    # Exactly one riser (+2), one faller (-2), one flat (0).
+    manager = build_movement_team("accent@test.com")
+    sign_in(manager)
+
+    get scorecards_path
+    assert_response :success
+
+    body = response.body
+    assert_equal 1, body.scan("border-error/40").size
+    assert_equal 1, body.scan("border-success/40").size
+  end
 end

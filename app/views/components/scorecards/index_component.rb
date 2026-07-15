@@ -79,7 +79,7 @@ module Scorecards
 
     def render_tile(tile)
       a(href: scorecard_path(csr: tile[:csr_name]), class: "block") do
-        Card class: "surface hover:shadow-md transition-shadow" do |card|
+        Card class: "surface hover:shadow-md transition-shadow #{tile_accent(tile[:delta])}" do |card|
           card.body do
             h2(class: "card-title text-base font-bold") { tile[:csr_name] }
             div(class: "flex items-baseline justify-between mt-2") do
@@ -94,6 +94,18 @@ module Scorecards
             end
           end
         end
+      end
+    end
+
+    # A sorted grid does not read as a ranking on its own, so movement drives
+    # the styling too: position and colour carry the hierarchy together.
+    def tile_accent(delta)
+      if delta.positive?
+        "border border-error/40 bg-error/5"
+      elsif delta.negative?
+        "border border-success/40 bg-success/5"
+      else
+        ""
       end
     end
 

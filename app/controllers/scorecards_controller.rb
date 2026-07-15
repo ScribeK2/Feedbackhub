@@ -72,7 +72,7 @@ class ScorecardsController < ApplicationController
   end
 
   # One report over the whole team: the baseline that gives each tile's delta
-  # its meaning. Three COUNTs and one pluck, independent of team size.
+  # its meaning. Two COUNTs and one pluck, independent of team size.
   def team_summary(names)
     report = ScorecardReport.for_team(names, date_range: requested_range)
     { count: report.total_count, delta: report.delta, buckets: report.trend_buckets, zero: report.zero_in_period? }
