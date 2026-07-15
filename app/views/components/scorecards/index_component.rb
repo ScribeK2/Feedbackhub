@@ -78,7 +78,9 @@ module Scorecards
     end
 
     def render_tile(tile)
-      a(href: scorecard_path(csr: tile[:csr_name]), class: "block") do
+      a(href: scorecard_path(csr: tile[:csr_name],
+                             start: @date_range.begin.to_date.iso8601,
+                             end: @date_range.end.to_date.iso8601), class: "block") do
         Card class: "surface hover:shadow-md transition-shadow #{tile_accent(tile[:delta])}" do |card|
           card.body do
             h2(class: "card-title text-base font-bold") { tile[:csr_name] }

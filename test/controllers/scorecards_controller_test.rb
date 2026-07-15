@@ -273,6 +273,18 @@ class ScorecardsControllerTest < ActionDispatch::IntegrationTest
     assert_includes body, "/scorecards.csv?end=#{end_param}&start=#{start_param}"
   end
 
+  test "show back link carries the requested range" do
+    sign_in_as_manager
+    start_param = "2026-01-01"
+    end_param = "2026-01-31"
+
+    get scorecard_path(csr: "Jane Doe", start: start_param, end: end_param)
+    assert_response :success
+
+    body = CGI.unescapeHTML(response.body)
+    assert_includes body, "/scorecards?end=#{end_param}&start=#{start_param}"
+  end
+
   test "show still renders its date form after the extraction" do
     sign_in_as_manager
 
@@ -325,6 +337,36 @@ class ScorecardsControllerTest < ActionDispatch::IntegrationTest
 
     assert_not_includes response.body, "Team total"
     assert_includes response.body, "No CSRs on your team yet"
+  end
+
+  test "index tile links carry the requested range" do
+    sign_in_as_manager
+    start_param = 10.days.ago.to_date.iso8601
+    end_param = Date.current.iso8601
+
+    get scorecards_path(start: start_param, end: end_param)
+    assert_response :success
+
+    body = CGI.unescapeHTML(response.body)
+    # Without the range, a tile reading N issues would open a show page that
+    # falls back to the default 30-day window and reads a different number.
+    assert_includes body, "/scorecards/show?csr=Jane+Doe&end=#{end_param}&start=#{start_param}"
+  end
+
+  test "index ranks movement, not standing" do
+    manager = manager_with_team("standing@test.com", %w[Veteran Newcomer])
+    15.times { build_submission(csr: "Veteran", created_at: 45.days.ago) }
+    16.times { build_submission(csr: "Veteran", created_at: 2.days.ago) }  # +1, total 16
+    2.times  { build_submission(csr: "Newcomer", created_at: 2.days.ago) } # +2, total 2
+    sign_in(manager)
+
+    get scorecards_path
+    assert_response :success
+
+    # Sorting by total_count would put Veteran (16) first. Ranking movement
+    # puts Newcomer (+2) first. This test is the guard on that invariant:
+    # it must fail if the sort key ever becomes standing instead of movement.
+    assert_operator response.body.index("Newcomer"), :<, response.body.index("Veteran")
   end
 
   test "regressed tiles carry the error accent and improved tiles the success accent" do

@@ -23,10 +23,12 @@ class ScorecardReport
     @date_range = date_range || self.class.default_range
   end
 
-  # Single-subject callers only (page title, CSV filename). Team reports do
-  # not use this.
+  # Single-subject callers only (page title, CSV filename). Raises rather than
+  # silently attributing a whole team to whichever CSR sorted first.
   def csr_name
-    @csr_names.first.to_s
+    raise ArgumentError, "csr_name is for single-subject reports; this one covers #{@csr_names.size}" unless @csr_names.one?
+
+    @csr_names.first
   end
 
   def self.default_range

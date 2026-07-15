@@ -35,7 +35,9 @@ module Scorecards
         end
         div(class: "flex gap-2") do
           a(href: detail_csv_href, class: "btn btn-ghost btn-sm", data: { turbo: "false" }) { "Export CSV" }
-          a(href: scorecards_path, class: "btn btn-ghost btn-sm") { "All scorecards" }
+          a(href: scorecards_path(start: @report.date_range.begin.to_date.iso8601,
+                                  end: @report.date_range.end.to_date.iso8601),
+            class: "btn btn-ghost btn-sm") { "All scorecards" }
         end
       end
     end
