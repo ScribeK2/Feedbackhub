@@ -33,6 +33,11 @@ module Admin
         render Admin::CsrFormComponent.new(csr: @csr, users: users, merge_targets: merge_targets),
           status: :unprocessable_entity
       end
+    rescue Csr::RewriteFailed => e
+      @csr.reload
+      @csr.errors.add(:base, rewrite_failure_message(e))
+      render Admin::CsrFormComponent.new(csr: @csr, users: users, merge_targets: merge_targets),
+        status: :unprocessable_entity
     end
 
     def destroy
@@ -54,9 +59,18 @@ module Admin
         @csr.merge_into!(target)
         redirect_to admin_csrs_path, notice: "#{@csr.name} merged into #{target.name}."
       end
+    rescue Csr::RewriteFailed => e
+      redirect_to edit_admin_csr_path(@csr), alert: rewrite_failure_message(e)
     end
 
     private
+
+    # Renames and merges rewrite every referencing row inside the save
+    # transaction, so one unsaveable legacy row rolls the whole thing back.
+    def rewrite_failure_message(error)
+      "Could not rewrite references: an existing feedback record is invalid " \
+        "(#{error.message}). Fix that record, then try again."
+    end
 
     def set_csr
       @csr = Csr.find(params[:id])

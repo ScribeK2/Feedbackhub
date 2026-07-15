@@ -58,6 +58,38 @@ class Admin::CsrsControllerTest < ActionDispatch::IntegrationTest
     assert_equal users(:regular), csr.user
   end
 
+  test "update rejects a forged user_id" do
+    patch admin_csr_path(csrs(:jane_doe)),
+      params: { csr: { name: "Jane Doe", active: "1", user_id: User.maximum(:id).to_i + 1 } }
+    assert_response :unprocessable_entity
+    assert_nil csrs(:jane_doe).reload.user_id
+  end
+
+  test "update reports a rewrite failure instead of raising" do
+    # A legacy row that no longer passes validation: the rename callback's
+    # save! on it must come back as the form plus an explanatory error, not
+    # as Rails' bare 422 exception page.
+    feedback_submissions(:high_priority).update_column(:status, "legacy_status")
+
+    patch admin_csr_path(csrs(:jane_doe)), params: { csr: { name: "Jane A. Doe", active: "1" } }
+
+    assert_response :unprocessable_entity
+    assert_select "div.alert-error", /existing feedback/i
+    assert_select "input[name='csr[name]']"
+    assert_equal "Jane Doe", csrs(:jane_doe).reload.name
+    assert_equal "Jane Doe", feedback_submissions(:high_priority).reload.csr_name
+  end
+
+  test "merge reports a rewrite failure instead of raising" do
+    feedback_submissions(:high_priority).update_column(:status, "legacy_status")
+
+    post merge_admin_csr_path(csrs(:jane_doe)), params: { target_id: csrs(:test_csr).id }
+
+    assert_not_nil flash[:alert]
+    assert Csr.exists?(csrs(:jane_doe).id)
+    assert_equal "Jane Doe", feedback_submissions(:high_priority).reload.csr_name
+  end
+
   test "merge repoints references and removes the source" do
     post merge_admin_csr_path(csrs(:jane_doe)), params: { target_id: csrs(:test_csr).id }
     assert_redirected_to admin_csrs_path
