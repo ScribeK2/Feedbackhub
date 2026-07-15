@@ -3,8 +3,30 @@
 require "test_helper"
 
 class ScorecardsControllerTest < ActionDispatch::IntegrationTest
+  include ScorecardTestHelper
+
   # The `manager` fixture's team includes "Jane Doe" (team_memberships(:manager_jane)),
   # and Jane Doe has two feedback fixtures.
+
+  # A manager whose team is exactly the given CSR names.
+  def manager_with_team(email, names)
+    manager = User.create!(email: email, name: "Team Mgr", password: "password", role: "manager")
+    names.each do |name|
+      Csr.lookup(name) || Csr.create!(name: name)
+      TeamMembership.create!(manager: manager, csr_name: name)
+    end
+    manager
+  end
+
+  # Default range is the last 30 days, so the previous window is days 30-60.
+  def build_movement_team(email)
+    manager = manager_with_team(email, %w[Riser Flat Faller])
+    2.times { build_submission(csr: "Riser", created_at: 2.days.ago) }   # 0 -> 2, delta +2
+    build_submission(csr: "Flat", created_at: 2.days.ago)                # 1 -> 1, delta  0
+    build_submission(csr: "Flat", created_at: 45.days.ago)
+    2.times { build_submission(csr: "Faller", created_at: 45.days.ago) } # 2 -> 0, delta -2
+    manager
+  end
 
   test "unauthenticated user is redirected to login" do
     get scorecards_path
@@ -172,5 +194,60 @@ class ScorecardsControllerTest < ActionDispatch::IntegrationTest
     sign_in_as_manager
     get scorecard_path(csr: "Carlos Reyes", format: :csv)
     assert_redirected_to scorecards_path
+  end
+
+  test "index sorts CSRs by signed delta descending" do
+    manager = build_movement_team("sort@test.com")
+    sign_in(manager)
+
+    get scorecards_path
+    assert_response :success
+
+    body = response.body
+    assert_operator body.index("Riser"), :<, body.index("Flat")
+    assert_operator body.index("Flat"), :<, body.index("Faller")
+  end
+
+  test "index breaks delta ties alphabetically" do
+    # Neither CSR has any feedback, so both sit at delta 0.
+    manager = manager_with_team("tie@test.com", %w[Zeta Alpha])
+    sign_in(manager)
+
+    get scorecards_path
+    assert_response :success
+
+    body = response.body
+    assert_operator body.index("Alpha"), :<, body.index("Zeta")
+  end
+
+  test "index honors explicit start and end params" do
+    build_submission(csr: "Jane Doe", created_at: 200.days.ago)
+    sign_in_as_manager
+
+    get scorecards_path(start: 205.days.ago.to_date.iso8601, end: 195.days.ago.to_date.iso8601)
+    assert_response :success
+    # Only the 200-day-old item falls in the window; the two recent Jane Doe
+    # fixtures do not. Regression guard: HTML used to ignore these params
+    # while the CSV honored them.
+    assert_match ">1<", response.body
+  end
+
+  test "index falls back to the default range on inverted dates" do
+    sign_in_as_manager
+
+    get scorecards_path(start: Date.current.iso8601, end: 10.days.ago.to_date.iso8601)
+    assert_response :success
+    assert_match ">2<", response.body # both Jane Doe fixtures in the default 30-day window
+  end
+
+  test "index csv rows follow the same delta order as the page" do
+    manager = build_movement_team("csvorder@test.com")
+    sign_in(manager)
+
+    get scorecards_path(format: :csv)
+    assert_response :success
+
+    rows = CSV.parse(response.body, headers: true)
+    assert_equal %w[Riser Flat Faller], rows.map { |row| row["csr_name"] }
   end
 end

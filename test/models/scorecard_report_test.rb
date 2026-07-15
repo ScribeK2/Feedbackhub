@@ -3,22 +3,7 @@
 require "test_helper"
 
 class ScorecardReportTest < ActiveSupport::TestCase
-  def build_submission(csr:, created_at:, priority: "High", feedback_type: "Knowledge Gap", impact: "Resolution Time")
-    Csr.lookup(csr) || Csr.create!(name: csr)
-    FeedbackSubmission.create!(
-      feedback_template: feedback_templates(:csr_feedback),
-      created_at: created_at,
-      updated_at: created_at,
-      data: {
-        "ticket_number" => "TK-#{rand(10_000)}",
-        "csr" => csr,
-        "feedback_type" => feedback_type,
-        "impact" => impact,
-        "priority" => priority,
-        "submitted_by" => "Tester"
-      }
-    )
-  end
+  include ScorecardTestHelper
 
   test "matches CSR name case-insensitively via for_csrs" do
     build_submission(csr: "Bob Lee", created_at: 2.days.ago)
