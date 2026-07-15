@@ -97,14 +97,7 @@ module Scorecards
     end
 
     def render_delta
-      delta = @report.delta
-      if delta.positive?
-        span(class: "badge badge-error badge-soft") { "▲ #{delta} vs previous" }
-      elsif delta.negative?
-        span(class: "badge badge-success badge-soft") { "▼ #{delta.abs} vs previous" }
-      else
-        span(class: "badge badge-ghost") { "No change vs previous" }
-      end
+      render DeltaBadgeComponent.new(delta: @report.delta)
     end
 
     def render_recent

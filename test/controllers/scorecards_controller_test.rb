@@ -282,4 +282,48 @@ class ScorecardsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, 'value="2026-01-01"'
     assert_includes response.body, 'name="csr"' # the show form keeps its hidden CSR field
   end
+
+  test "team strip sums issues across the whole team" do
+    manager = manager_with_team("strip@test.com", %w[Ann Bob])
+    2.times { build_submission(csr: "Ann", created_at: 2.days.ago) }
+    build_submission(csr: "Bob", created_at: 3.days.ago)
+    sign_in(manager)
+
+    get scorecards_path
+    assert_response :success
+
+    assert_match(/Team total.*?>3</m, response.body)
+  end
+
+  test "team strip shows the team-wide delta" do
+    manager = build_movement_team("stripdelta@test.com")
+    sign_in(manager)
+
+    get scorecards_path
+    assert_response :success
+
+    # Riser +2, Flat 0, Faller -2 -> team delta 0.
+    assert_match(/Team total.*?No change vs previous/m, response.body)
+  end
+
+  test "team strip shows the good state when the team logged nothing this period" do
+    manager = manager_with_team("stripzero@test.com", %w[Quiet One])
+    sign_in(manager)
+
+    get scorecards_path
+    assert_response :success
+
+    assert_includes response.body, "No issues logged this period"
+  end
+
+  test "empty-team manager sees no team strip" do
+    manager = User.create!(email: "nostrip@test.com", name: "No Strip", password: "password", role: "manager")
+    sign_in(manager)
+
+    get scorecards_path
+    assert_response :success
+
+    assert_not_includes response.body, "Team total"
+    assert_includes response.body, "No CSRs on your team yet"
+  end
 end

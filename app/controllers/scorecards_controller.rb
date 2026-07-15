@@ -11,6 +11,7 @@ class ScorecardsController < ApplicationController
       format.html do
         render Scorecards::IndexComponent.new(
           tiles: reports.map { |report| tile_for(report) },
+          team: team_summary(names),
           date_range: requested_range
         )
       end
@@ -68,6 +69,13 @@ class ScorecardsController < ApplicationController
   def ordered_reports(names)
     names.map { |name| ScorecardReport.new(csr_name: name, date_range: requested_range) }
          .sort_by { |report| [ -report.delta, report.csr_name.downcase ] }
+  end
+
+  # One report over the whole team: the baseline that gives each tile's delta
+  # its meaning. Three COUNTs and one pluck, independent of team size.
+  def team_summary(names)
+    report = ScorecardReport.for_team(names, date_range: requested_range)
+    { count: report.total_count, delta: report.delta, buckets: report.trend_buckets, zero: report.zero_in_period? }
   end
 
   def tile_for(report)

@@ -2,8 +2,9 @@
 
 module Scorecards
   class IndexComponent < ApplicationComponent
-    def initialize(tiles:, date_range:)
+    def initialize(tiles:, team:, date_range:)
       @tiles = tiles
+      @team = team
       @date_range = date_range
     end
 
@@ -20,6 +21,7 @@ module Scorecards
           render_empty_prompt
         else
           render_date_form
+          render_team_strip
           div(class: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4") do
             @tiles.each { |tile| render_tile(tile) }
           end
@@ -54,6 +56,23 @@ module Scorecards
             a(href: team_path, class: "link") { "My Team" }
             plain " page to see their scorecards."
           end
+        end
+      end
+    end
+
+    def render_team_strip
+      Card class: "surface" do |card|
+        card.body do
+          div(class: "flex items-baseline justify-between") do
+            h2(class: "card-title text-lg font-bold") { "Team total" }
+            render DeltaBadgeComponent.new(delta: @team[:delta])
+          end
+          if @team[:zero]
+            p(class: "text-success font-medium mt-2") { "No issues logged this period \u{1F389}" }
+          else
+            p(class: "text-4xl font-bold mt-1") { @team[:count].to_s }
+          end
+          div(class: "mt-4") { render TrendChartComponent.new(buckets: @team[:buckets]) }
         end
       end
     end
