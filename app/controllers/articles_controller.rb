@@ -37,12 +37,17 @@ class ArticlesController < ApplicationController
   end
 
   def update
-    if @article.update(article_params)
+    Article.transaction do
+      @article.update!(article_params)
       assign_tags(@article, params[:tag_names])
-      redirect_to article_path(@article), notice: "Article updated successfully!"
-    else
-      render Articles::FormComponent.new(article: @article), status: :unprocessable_entity
     end
+
+    redirect_to article_path(@article), notice: "Article updated successfully!"
+  rescue ActiveRecord::RecordInvalid => e
+    # An invalid article populates its own errors; anything else came from
+    # tag assignment and would otherwise re-render a form with no message.
+    @article.errors.add(:base, "Could not update tags: #{e.message}") if @article.errors.empty?
+    render Articles::FormComponent.new(article: @article), status: :unprocessable_entity
   end
 
   def destroy
@@ -71,7 +76,16 @@ class ArticlesController < ApplicationController
     return if tag_names_string.nil?
 
     tag_names = tag_names_string.split(",").map(&:strip).reject(&:blank?).uniq
-    tags = tag_names.map { |name| Tag.find_or_create_by!(name: name.downcase) }
+    tags = tag_names.map { |name| find_or_create_tag(name.downcase) }
     article.tags = tags
+  end
+
+  # A concurrent request can insert the same tag between our find and our
+  # insert, so the unique index — not the uniqueness validation — is what
+  # settles the race. The loser reads the winner's row.
+  def find_or_create_tag(name)
+    Tag.find_or_create_by!(name: name)
+  rescue ActiveRecord::RecordNotUnique
+    Tag.find_by!(name: name)
   end
 end

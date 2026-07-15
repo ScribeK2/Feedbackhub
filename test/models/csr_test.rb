@@ -47,6 +47,12 @@ class CsrTest < ActiveSupport::TestCase
     assert_equal users(:regular), csr.reload.user
   end
 
+  test "rejects a user_id with no matching user" do
+    csr = Csr.new(name: "Priya Patel", user_id: User.maximum(:id).to_i + 1)
+    assert_not csr.valid?
+    assert_includes csr.errors[:user], "must exist"
+  end
+
   test "renaming rewrites submission csr_name, data json, and memberships" do
     submission = feedback_submissions(:high_priority)
     membership = team_memberships(:manager_jane)
@@ -93,6 +99,28 @@ class CsrTest < ActiveSupport::TestCase
     end
     assert TeamMembership.exists?(kept.id)
     assert_not TeamMembership.exists?(jane_membership_id)
+  end
+
+  test "merge_into! carries the source's user link to an unlinked target" do
+    source = csrs(:jane_doe)
+    target = csrs(:test_csr)
+    source.update!(user: users(:regular))
+    assert_nil target.user_id
+
+    source.merge_into!(target)
+
+    assert_equal users(:regular), target.reload.user
+  end
+
+  test "merge_into! keeps the target's own user link over the source's" do
+    source = csrs(:jane_doe)
+    target = csrs(:test_csr)
+    source.update!(user: users(:regular))
+    target.update!(user: users(:manager))
+
+    source.merge_into!(target)
+
+    assert_equal users(:manager), target.reload.user
   end
 
   test "merge_into! refuses to merge into itself" do

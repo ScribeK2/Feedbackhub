@@ -118,9 +118,62 @@ class ArticlesControllerTest < ActionDispatch::IntegrationTest
     assert_equal %w[policy], article.tags.pluck(:name)
   end
 
+  test "update rolls back article changes when tag assignment fails" do
+    with_tag_creator ->(_attrs, _original) { raise ActiveRecord::RecordInvalid, Tag.new } do
+      patch article_path(articles(:policy_doc)), params: {
+        article: { title: "Updated Policy" },
+        tag_names: "revised"
+      }
+    end
+
+    assert_response :unprocessable_entity
+    article = articles(:policy_doc).reload
+    assert_equal "Escalation Policy", article.title
+    assert_equal %w[policy], article.tags.pluck(:name)
+  end
+
+  test "update recovers when another request wins the tag insert race" do
+    # A competing request's row lands between our find and our insert, so
+    # find_or_create_by! hits the unique index. Forced rather than threaded:
+    # the real interleaving can't be scheduled deterministically.
+    lost_race = false
+    racer = lambda do |attrs, original|
+      next original.call(attrs) if lost_race
+
+      lost_race = true
+      original.call(attrs)
+      raise ActiveRecord::RecordNotUnique, "duplicate tag name"
+    end
+
+    with_tag_creator racer do
+      patch article_path(articles(:policy_doc)), params: {
+        article: { title: "Escalation Policy" },
+        tag_names: "revised"
+      }
+    end
+
+    assert lost_race, "expected the forced race to fire"
+    assert_redirected_to article_path(articles(:policy_doc))
+    assert_equal %w[revised], articles(:policy_doc).reload.tags.pluck(:name)
+  end
+
   test "non-author cannot update article" do
     patch article_path(articles(:dns_guide)), params: { article: { title: "Hijacked" } }
     assert_redirected_to article_path(articles(:dns_guide))
     assert_equal "DNS Troubleshooting Guide", articles(:dns_guide).reload.title
+  end
+
+  private
+
+  # Swaps Tag.find_or_create_by! for the duration of the block. The callable
+  # receives the attributes and the original method, so it can delegate.
+  def with_tag_creator(callable)
+    original = Tag.method(:find_or_create_by!)
+    Tag.singleton_class.define_method(:find_or_create_by!) do |attrs|
+      callable.call(attrs, original)
+    end
+    yield
+  ensure
+    Tag.singleton_class.remove_method(:find_or_create_by!)
   end
 end

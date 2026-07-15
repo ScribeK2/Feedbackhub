@@ -1,7 +1,15 @@
 class Csr < ApplicationRecord
+  # Raised when a rename or merge cannot rewrite a referencing row. Distinct
+  # from RecordInvalid because Active Record's non-bang `save` rescues that
+  # one, which would turn a failed rename into a silent no-op.
+  class RewriteFailed < StandardError; end
+
   belongs_to :user, optional: true
 
   validates :name, presence: true, uniqueness: { case_sensitive: false }
+  # belongs_to optional skips existence checks, leaving a forged user_id to
+  # fail against the database foreign key instead of the form.
+  validates :user, presence: { message: "must exist" }, if: -> { user_id.present? }
 
   scope :active, -> { where(active: true) }
 
@@ -31,13 +39,16 @@ class Csr < ApplicationRecord
 
   # Repoints every reference from this CSR to target, then removes this
   # registry row. Team memberships that would collide with an existing
-  # membership of the target are dropped instead of repointed.
+  # membership of the target are dropped instead of repointed. The source's
+  # user link moves across only when the target has none of its own.
   def merge_into!(target)
     raise ArgumentError, "cannot merge a CSR into itself" if target == self
 
     transaction do
       source_name = name
+      source_user_id = user_id
       destroy!
+      target.update!(user_id: source_user_id) if source_user_id && target.user_id.nil?
       target.rewrite_references(source_name)
     end
   end
@@ -60,6 +71,8 @@ class Csr < ApplicationRecord
         membership.update!(csr_name: name)
       end
     end
+  rescue ActiveRecord::RecordInvalid => e
+    raise RewriteFailed, e.message
   end
 
   private
